@@ -6,6 +6,9 @@ import {
   insights, type Insight, type InsertInsight,
   RISK_SEVERITY, RISK_STATUS, RISK_CATEGORIES
 } from "@shared/schema";
+import session from "express-session";
+import { DatabaseStorage } from "./storage-db";
+import createMemoryStore from "memorystore";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 
@@ -17,14 +20,6 @@ async function hashPassword(password: string) {
   const salt = randomBytes(16).toString("hex");
   const buf = (await scryptAsync(password, salt, 64)) as Buffer;
   return `${buf.toString("hex")}.${salt}`;
-}
-
-// Compare password with stored hash
-async function comparePasswords(supplied: string, stored: string) {
-  const [hashed, salt] = stored.split(".");
-  const hashedBuf = Buffer.from(hashed, "hex");
-  const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
-  return timingSafeEqual(hashedBuf, suppliedBuf);
 }
 
 // Helper function to calculate severity based on probability and impact
@@ -75,6 +70,9 @@ export interface IStorage {
   
   // Dashboard operations
   getRiskSummary(): Promise<any>;
+  
+  // Session store
+  sessionStore: session.Store;
 }
 
 export class MemStorage implements IStorage {
@@ -90,6 +88,8 @@ export class MemStorage implements IStorage {
   private riskEventIdCounter: number;
   private insightIdCounter: number;
   
+  sessionStore: session.Store;
+  
   constructor() {
     this.users = new Map();
     this.projects = new Map();
@@ -102,6 +102,12 @@ export class MemStorage implements IStorage {
     this.riskIdCounter = 1;
     this.riskEventIdCounter = 1;
     this.insightIdCounter = 1;
+    
+    // Initialize memory session store
+    const MemoryStore = createMemoryStore(session);
+    this.sessionStore = new MemoryStore({
+      checkPeriod: 86400000, // prune expired entries every 24h
+    });
     
     // Initialize with seed data
     this.seedData();
@@ -560,4 +566,17 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// Use Database Storage for production
+export const storage = new DatabaseStorage();
+
+// Initialize the database with seed data if needed
+(async () => {
+  if (storage instanceof DatabaseStorage) {
+    try {
+      await (storage as DatabaseStorage).initializeDatabase();
+      console.log("Database initialized successfully");
+    } catch (error) {
+      console.error("Error initializing database:", error);
+    }
+  }
+})();
