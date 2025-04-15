@@ -50,11 +50,12 @@ export function RiskHeatmap({ heatmapData }: RiskHeatmapProps) {
       </CardContent>
       <CardFooter className="bg-gray-50 px-5 py-3 border-t border-gray-200">
         <div className="text-sm">
-          <Link href="/risks">
-            <a className="font-medium text-blue-600 hover:text-blue-700">
-              View detailed analysis
-            </a>
-          </Link>
+          <div
+            className="font-medium text-blue-600 hover:text-blue-700 cursor-pointer"
+            onClick={() => window.location.href = "/risks"}
+          >
+            View detailed analysis
+          </div>
         </div>
       </CardFooter>
     </Card>
