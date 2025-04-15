@@ -109,12 +109,13 @@ function SummaryCard({
       </CardContent>
       <CardFooter className="bg-gray-50 px-6 py-3 border-t border-gray-100">
         <div className="text-sm">
-          <Link href={link}>
-            <a className={`font-medium ${linkClassName} inline-flex items-center transition-colors`}>
-              {linkText}
-              <ExternalLink className="ml-1 h-3 w-3" />
-            </a>
-          </Link>
+          <div
+            className={`font-medium ${linkClassName} inline-flex items-center transition-colors cursor-pointer`}
+            onClick={() => window.location.href = link}
+          >
+            {linkText}
+            <ExternalLink className="ml-1 h-3 w-3" />
+          </div>
         </div>
       </CardFooter>
     </Card>

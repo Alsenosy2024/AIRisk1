@@ -106,7 +106,7 @@ export function RiskFilters({ onFilterChange }: RiskFiltersProps) {
                 <SelectValue placeholder="Project" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Projects</SelectItem>
+                <SelectItem value="all">All Projects</SelectItem>
                 {projects.map((project) => (
                   <SelectItem key={project.id} value={project.id.toString()}>
                     {project.name}
@@ -126,7 +126,7 @@ export function RiskFilters({ onFilterChange }: RiskFiltersProps) {
                 <SelectValue placeholder="Owner" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Owners</SelectItem>
+                <SelectItem value="all">All Owners</SelectItem>
                 {users.map((user) => (
                   <SelectItem key={user.id} value={user.id.toString()}>
                     {user.name}
@@ -146,7 +146,7 @@ export function RiskFilters({ onFilterChange }: RiskFiltersProps) {
                 <SelectValue placeholder="Category" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Categories</SelectItem>
+                <SelectItem value="all">All Categories</SelectItem>
                 {RISK_CATEGORIES.map((category) => (
                   <SelectItem key={category} value={category}>
                     {category}
@@ -166,7 +166,7 @@ export function RiskFilters({ onFilterChange }: RiskFiltersProps) {
                 <SelectValue placeholder="Severity" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Severities</SelectItem>
+                <SelectItem value="all">All Severities</SelectItem>
                 {RISK_SEVERITY.map((severity) => (
                   <SelectItem key={severity} value={severity}>
                     {severity}
@@ -187,7 +187,7 @@ export function RiskFilters({ onFilterChange }: RiskFiltersProps) {
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Statuses</SelectItem>
+                <SelectItem value="all">All Statuses</SelectItem>
                 {RISK_STATUS.map((status) => (
                   <SelectItem key={status} value={status}>
                     {status}
