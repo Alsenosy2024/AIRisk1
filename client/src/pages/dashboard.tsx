@@ -66,58 +66,89 @@ export default function Dashboard() {
 
           {/* Risk Summary Cards */}
           {dashboardData ? (
-            <RiskSummaryCards
-              totalRisks={dashboardData.totalRisks}
-              criticalRisks={dashboardData.criticalRisks}
-              highRisks={dashboardData.highRisks}
-              mitigationProgress={dashboardData.mitigationProgress}
-            />
+            <div className="mt-6">
+              <RiskSummaryCards
+                totalRisks={dashboardData.totalRisks}
+                criticalRisks={dashboardData.criticalRisks}
+                highRisks={dashboardData.highRisks}
+                mitigationProgress={dashboardData.mitigationProgress}
+              />
+            </div>
           ) : (
-            <div className="py-4 text-center text-gray-500">
-              Loading dashboard data...
+            <div className="py-6 text-center">
+              <div className="inline-block p-3 rounded-full bg-blue-50 mb-4">
+                <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
+              </div>
+              <p className="text-gray-500">Loading dashboard data...</p>
             </div>
           )}
 
           {/* Main Dashboard Widgets */}
           {dashboardData ? (
-            <div className="mt-6 grid grid-cols-1 gap-5 lg:grid-cols-2 xl:grid-cols-3">
+            <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3">
               {/* Risk Heatmap Widget */}
               <div className="lg:col-span-1 xl:col-span-1">
-                <RiskHeatmap heatmapData={dashboardData.heatmapData} />
+                <div className="dashboard-card h-full transition-all hover:shadow-md">
+                  <RiskHeatmap heatmapData={dashboardData.heatmapData} />
+                </div>
               </div>
 
               {/* Risks by Category Widget */}
               <div className="lg:col-span-1 xl:col-span-1">
-                <RisksByCategory categories={dashboardData.risksByCategory} />
+                <div className="dashboard-card h-full transition-all hover:shadow-md">
+                  <RisksByCategory categories={dashboardData.risksByCategory} />
+                </div>
               </div>
 
               {/* Risk Trend Widget */}
               <div className="lg:col-span-2 xl:col-span-1">
-                <RiskTrend trendData={dashboardData.riskTrend} />
+                <div className="dashboard-card h-full transition-all hover:shadow-md">
+                  <RiskTrend trendData={dashboardData.riskTrend} />
+                </div>
               </div>
             </div>
           ) : (
-            <div className="mt-6 grid grid-cols-1 gap-5 lg:grid-cols-3">
-              <div className="bg-white p-6 rounded-lg shadow h-64 animate-pulse" />
-              <div className="bg-white p-6 rounded-lg shadow h-64 animate-pulse" />
-              <div className="bg-white p-6 rounded-lg shadow h-64 animate-pulse" />
+            <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
+              <div className="dashboard-card h-64">
+                <div className="h-full w-full flex items-center justify-center">
+                  <div className="w-full h-48 bg-gray-100 animate-pulse rounded-lg"></div>
+                </div>
+              </div>
+              <div className="dashboard-card h-64">
+                <div className="h-full w-full flex items-center justify-center">
+                  <div className="w-full h-48 bg-gray-100 animate-pulse rounded-lg"></div>
+                </div>
+              </div>
+              <div className="dashboard-card h-64">
+                <div className="h-full w-full flex items-center justify-center">
+                  <div className="w-full h-48 bg-gray-100 animate-pulse rounded-lg"></div>
+                </div>
+              </div>
             </div>
           )}
 
           {/* Top Risks Table */}
           {dashboardData?.topRisks && (
-            <TopRisksTable 
-              risks={dashboardData.topRisks} 
-              onRefresh={() => refetch()} 
-            />
+            <div className="mt-8">
+              <div className="dashboard-card">
+                <TopRisksTable 
+                  risks={dashboardData.topRisks} 
+                  onRefresh={() => refetch()} 
+                />
+              </div>
+            </div>
           )}
 
           {/* AI Insights Section */}
           {dashboardData?.insights && (
-            <AIInsights 
-              insights={dashboardData.insights} 
-              onRefresh={() => refetch()} 
-            />
+            <div className="mt-8">
+              <div className="dashboard-card ai-gradient-bg">
+                <AIInsights 
+                  insights={dashboardData.insights} 
+                  onRefresh={() => refetch()} 
+                />
+              </div>
+            </div>
           )}
         </main>
       </div>
