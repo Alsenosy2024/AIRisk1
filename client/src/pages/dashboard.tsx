@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { downloadAsJson } from "@/lib/utils";
+import { generateDashboardPDF } from "@/lib/pdf-export";
 
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
@@ -16,6 +17,11 @@ import { useToast } from "@/hooks/use-toast";
 export default function Dashboard() {
   const [sidebarVisible, setSidebarVisible] = useState(true);
   const { toast } = useToast();
+  
+  // Refs for chart canvas elements to capture for PDF export
+  const heatmapRef = useRef<HTMLCanvasElement>(null);
+  const categoryChartRef = useRef<HTMLCanvasElement>(null);
+  const trendChartRef = useRef<HTMLCanvasElement>(null);
 
   // Fetch dashboard data
   const { data: dashboardData, refetch } = useQuery({
@@ -29,16 +35,72 @@ export default function Dashboard() {
 
   const handleExportDashboard = () => {
     if (dashboardData) {
-      downloadAsJson(dashboardData, "risk-dashboard-export.json");
-      toast({
-        title: "Dashboard Exported",
-        description: "Dashboard data has been exported as JSON",
-      });
+      // Show format selection dialog or options
+      const exportToPDF = window.confirm("Export to PDF? (Click Cancel for JSON export)");
+      
+      if (exportToPDF) {
+        exportDashboardToPDF();
+      } else {
+        // Fall back to JSON export
+        downloadAsJson(dashboardData, "risk-dashboard-export.json");
+        toast({
+          title: "Dashboard Exported",
+          description: "Dashboard data has been exported as JSON",
+        });
+      }
     } else {
       toast({
         variant: "destructive",
         title: "Export Failed",
         description: "No dashboard data available to export",
+      });
+    }
+  };
+  
+  // Function to export dashboard to PDF
+  const exportDashboardToPDF = () => {
+    if (!dashboardData) return;
+    
+    try {
+      // Gather chart canvas images if available
+      const chartImages: {
+        heatmap?: string;
+        categories?: string;
+        trend?: string;
+      } = {};
+      
+      // Capture chart images if possible
+      const canvasElements = document.querySelectorAll('canvas');
+      canvasElements.forEach(canvas => {
+        // Try to identify which chart this is by parent container's content/classes
+        const parentElement = canvas.parentElement?.parentElement;
+        if (!parentElement) return;
+        
+        const parentHTML = parentElement.innerHTML || '';
+        
+        if (parentHTML.includes('Heatmap') || parentHTML.includes('impact') || parentHTML.includes('probability')) {
+          chartImages.heatmap = canvas.toDataURL('image/png');
+        } else if (parentHTML.includes('Category') || parentHTML.includes('categories')) {
+          chartImages.categories = canvas.toDataURL('image/png');
+        } else if (parentHTML.includes('Trend') || parentHTML.includes('month')) {
+          chartImages.trend = canvas.toDataURL('image/png');
+        }
+      });
+      
+      // Generate and download the PDF
+      const pdf = generateDashboardPDF(dashboardData, chartImages);
+      pdf.save('RiskManagement-Dashboard-Report.pdf');
+      
+      toast({
+        title: "PDF Export Successful",
+        description: "Dashboard has been exported as a comprehensive PDF report",
+      });
+    } catch (error) {
+      console.error("PDF export error:", error);
+      toast({
+        variant: "destructive",
+        title: "PDF Export Failed",
+        description: error instanceof Error ? error.message : "Unknown error during export",
       });
     }
   };
