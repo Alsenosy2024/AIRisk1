@@ -1,8 +1,10 @@
 import { z } from "zod";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuth } from "@/hooks/use-auth";
 import { useLocation } from "wouter";
+import { useToast } from "@/hooks/use-toast";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,7 +24,12 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Loader2 } from "lucide-react";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@/components/ui/alert";
+import { Loader2, ExternalLink } from "lucide-react";
 
 // Register form schema
 const registerSchema = z.object({
@@ -42,6 +49,8 @@ type RegisterFormProps = {
 export function RegisterForm({ onSuccess }: RegisterFormProps) {
   const [, navigate] = useLocation();
   const { registerMutation } = useAuth();
+  const { toast } = useToast();
+  const [emailPreviewUrl, setEmailPreviewUrl] = useState<string | null>(null);
 
   // Register form
   const form = useForm<z.infer<typeof registerSchema>>({
@@ -57,7 +66,23 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
   // Handle register form submission
   const onRegisterSubmit = async (values: z.infer<typeof registerSchema>) => {
     try {
-      await registerMutation.mutateAsync(values);
+      const result = await registerMutation.mutateAsync(values);
+      
+      // Check if there's a preview URL for the confirmation email
+      if (result && 'devEmailPreview' in result) {
+        setEmailPreviewUrl(result.devEmailPreview as string);
+        
+        toast({
+          title: "Registration successful",
+          description: "A confirmation email has been sent. Check the preview link below.",
+        });
+      } else {
+        toast({
+          title: "Registration successful",
+          description: `Welcome, ${result.name}! A confirmation email has been sent to your address.`,
+        });
+      }
+      
       if (onSuccess) {
         onSuccess();
       } else {
@@ -154,6 +179,22 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
               )}
             />
           </form>
+          {emailPreviewUrl && (
+            <Alert className="mt-4">
+              <AlertTitle>Confirmation Email Preview</AlertTitle>
+              <AlertDescription className="flex flex-col gap-2">
+                <p>A confirmation email has been sent. Since you're in development mode, you can preview it here:</p>
+                <a 
+                  href={emailPreviewUrl} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-primary flex items-center hover:underline"
+                >
+                  View Email Preview <ExternalLink className="ml-1 h-4 w-4" />
+                </a>
+              </AlertDescription>
+            </Alert>
+          )}
         </Form>
       </CardContent>
       <CardFooter>

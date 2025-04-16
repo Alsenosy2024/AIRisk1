@@ -115,18 +115,53 @@ export function setupAuth(app: Express) {
       });
       console.log("User created successfully:", user.id);
 
-      // Log the user in after registration
-      req.login(user, (err) => {
-        if (err) {
-          console.error("Login after registration failed:", err);
-          return next(err);
+      // Send welcome email to the user
+      try {
+        const { sendConfirmationEmail } = await import("./services/email-service");
+        const emailResult = await sendConfirmationEmail(email, name);
+        
+        if (emailResult.success) {
+          console.log("Welcome email sent successfully");
+        } else {
+          console.warn("Failed to send welcome email");
         }
         
-        console.log("User logged in after registration:", user.id);
-        // Return user without password
-        const { password: _, ...userWithoutPassword } = user;
-        return res.status(201).json(userWithoutPassword);
-      });
+        // Include email preview URL in development environment
+        const devEmailPreview = process.env.NODE_ENV !== 'production' && emailResult.previewUrl 
+          ? { devEmailPreview: emailResult.previewUrl } 
+          : {};
+          
+        // Log the user in after registration
+        req.login(user, (err) => {
+          if (err) {
+            console.error("Login after registration failed:", err);
+            return next(err);
+          }
+          
+          console.log("User logged in after registration:", user.id);
+          // Return user without password
+          const { password: _, ...userWithoutPassword } = user;
+          return res.status(201).json({
+            ...userWithoutPassword,
+            ...devEmailPreview
+          });
+        });
+      } catch (emailError) {
+        console.error("Error sending welcome email:", emailError);
+        
+        // Continue with login even if email sending fails
+        req.login(user, (err) => {
+          if (err) {
+            console.error("Login after registration failed:", err);
+            return next(err);
+          }
+          
+          console.log("User logged in after registration:", user.id);
+          // Return user without password
+          const { password: _, ...userWithoutPassword } = user;
+          return res.status(201).json(userWithoutPassword);
+        });
+      }
     } catch (error) {
       console.error("Registration error:", error);
       return res.status(500).json({ 
