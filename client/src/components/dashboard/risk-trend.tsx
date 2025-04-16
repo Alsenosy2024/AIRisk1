@@ -96,11 +96,12 @@ export function RiskTrend({ trendData }: RiskTrendProps) {
       </CardContent>
       <CardFooter className="bg-gray-50 px-5 py-3 border-t border-gray-200">
         <div className="text-sm">
-          <Link href="/reports">
-            <a className="font-medium text-blue-600 hover:text-blue-700">
-              View historical data
-            </a>
-          </Link>
+          <div
+            className="font-medium text-blue-600 hover:text-blue-700 cursor-pointer"
+            onClick={() => window.location.href = "/reports"}
+          >
+            View historical data
+          </div>
         </div>
       </CardFooter>
     </Card>

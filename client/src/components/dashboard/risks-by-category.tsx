@@ -82,11 +82,12 @@ export function RisksByCategory({ categories }: RisksByCategoryProps) {
       </CardContent>
       <CardFooter className="bg-gray-50 px-5 py-3 border-t border-gray-200">
         <div className="text-sm">
-          <Link href="/risks">
-            <a className="font-medium text-blue-600 hover:text-blue-700">
-              Filter by category
-            </a>
-          </Link>
+          <div
+            className="font-medium text-blue-600 hover:text-blue-700 cursor-pointer"
+            onClick={() => window.location.href = "/risks"}
+          >
+            Filter by category
+          </div>
         </div>
       </CardFooter>
     </Card>
