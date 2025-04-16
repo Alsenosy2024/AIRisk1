@@ -134,7 +134,7 @@ export async function analyzeRiskData(
     */
   } catch (error) {
     console.error("Error analyzing risk data with AI:", error);
-    return generateFallbackInsights(riskData);
+    return generateFallbackInsights({risks, riskEvents, projects});
   }
 }
 
