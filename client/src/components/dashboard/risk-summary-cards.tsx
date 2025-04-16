@@ -93,29 +93,30 @@ function SummaryCard({
   linkClassName = "text-blue-600 hover:text-blue-700"
 }: SummaryCardProps) {
   return (
-    <Card className="card-hover border-0 shadow-md overflow-hidden">
+    <Card className="glass-card backdrop-blur-md border border-white/50 shadow-md overflow-hidden rounded-xl transition-all duration-300 hover:shadow-lg hover:translate-y-[-2px]">
       <CardContent className="p-6">
         <div className="flex items-center">
-          <div className={`flex-shrink-0 rounded-lg p-3 ${iconClassName}`}>
+          <div className={`flex-shrink-0 rounded-xl p-3 ${iconClassName} backdrop-filter backdrop-blur-sm`}>
             {icon}
           </div>
           <div className="ml-5 w-0 flex-1">
             <dt className="text-sm font-medium text-gray-500 truncate">{title}</dt>
             <dd>
-              <div className="text-2xl font-bold text-gray-900">{value}</div>
+              <div className="text-3xl font-bold text-gray-900 mt-1">{value}</div>
             </dd>
           </div>
         </div>
       </CardContent>
-      <CardFooter className="bg-gray-50 px-6 py-3 border-t border-gray-100">
+      <CardFooter className="bg-gray-50/70 backdrop-blur-sm px-6 py-3 border-t border-gray-100/50">
         <div className="text-sm">
-          <div
-            className={`font-medium ${linkClassName} inline-flex items-center transition-colors cursor-pointer`}
-            onClick={() => window.location.href = link}
-          >
-            {linkText}
-            <ExternalLink className="ml-1 h-3 w-3" />
-          </div>
+          <Link to={link}>
+            <div
+              className={`font-medium ${linkClassName} inline-flex items-center transition-colors`}
+            >
+              {linkText}
+              <ExternalLink className="ml-1 h-3 w-3" />
+            </div>
+          </Link>
         </div>
       </CardFooter>
     </Card>

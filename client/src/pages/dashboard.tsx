@@ -140,7 +140,7 @@ export default function Dashboard() {
         <Header toggleSidebar={toggleSidebar} />
 
         {/* Main content */}
-        <main className="flex-1 overflow-y-auto bg-gray-50 p-4 sm:p-6 lg:p-8">
+        <main className="flex-1 overflow-y-auto bg-gradient-to-b from-gray-50 to-white/80 p-4 sm:p-6 lg:p-8">
           {/* Dashboard Header */}
           <DashboardHeader 
             onCreateRisk={handleCreateRisk} 
@@ -158,11 +158,11 @@ export default function Dashboard() {
               />
             </div>
           ) : (
-            <div className="py-6 text-center">
-              <div className="inline-block p-3 rounded-full bg-blue-50 mb-4">
+            <div className="py-8 text-center">
+              <div className="inline-block p-4 rounded-full bg-blue-50/50 backdrop-blur-sm mb-4 shadow-sm">
                 <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full"></div>
               </div>
-              <p className="text-gray-500">Loading dashboard data...</p>
+              <p className="text-gray-500 font-medium">Loading dashboard data...</p>
             </div>
           )}
 
@@ -171,40 +171,46 @@ export default function Dashboard() {
             <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3">
               {/* Risk Heatmap Widget */}
               <div className="lg:col-span-1 xl:col-span-1">
-                <div className="dashboard-card h-full transition-all hover:shadow-md">
+                <div className="dashboard-card h-full glass-card">
+                  <h3 className="text-lg font-medium mb-4 text-gray-800">Risk Heatmap</h3>
                   <RiskHeatmap heatmapData={dashboardData.heatmapData} />
                 </div>
               </div>
 
               {/* Risks by Category Widget */}
               <div className="lg:col-span-1 xl:col-span-1">
-                <div className="dashboard-card h-full transition-all hover:shadow-md">
+                <div className="dashboard-card h-full glass-card">
+                  <h3 className="text-lg font-medium mb-4 text-gray-800">Risk Categories</h3>
                   <RisksByCategory categories={dashboardData.risksByCategory} />
                 </div>
               </div>
 
               {/* Risk Trend Widget */}
               <div className="lg:col-span-2 xl:col-span-1">
-                <div className="dashboard-card h-full transition-all hover:shadow-md">
+                <div className="dashboard-card h-full glass-card">
+                  <h3 className="text-lg font-medium mb-4 text-gray-800">Risk Trends</h3>
                   <RiskTrend trendData={dashboardData.riskTrend} />
                 </div>
               </div>
             </div>
           ) : (
             <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
-              <div className="dashboard-card h-64">
+              <div className="dashboard-card h-64 glass-card">
+                <h3 className="text-lg font-medium mb-4 text-gray-800">Risk Heatmap</h3>
                 <div className="h-full w-full flex items-center justify-center">
-                  <div className="w-full h-48 bg-gray-100 animate-pulse rounded-lg"></div>
+                  <div className="w-full h-48 bg-gray-100/50 animate-pulse rounded-xl"></div>
                 </div>
               </div>
-              <div className="dashboard-card h-64">
+              <div className="dashboard-card h-64 glass-card">
+                <h3 className="text-lg font-medium mb-4 text-gray-800">Risk Categories</h3>
                 <div className="h-full w-full flex items-center justify-center">
-                  <div className="w-full h-48 bg-gray-100 animate-pulse rounded-lg"></div>
+                  <div className="w-full h-48 bg-gray-100/50 animate-pulse rounded-xl"></div>
                 </div>
               </div>
-              <div className="dashboard-card h-64">
+              <div className="dashboard-card h-64 glass-card">
+                <h3 className="text-lg font-medium mb-4 text-gray-800">Risk Trends</h3>
                 <div className="h-full w-full flex items-center justify-center">
-                  <div className="w-full h-48 bg-gray-100 animate-pulse rounded-lg"></div>
+                  <div className="w-full h-48 bg-gray-100/50 animate-pulse rounded-xl"></div>
                 </div>
               </div>
             </div>
@@ -213,7 +219,8 @@ export default function Dashboard() {
           {/* Top Risks Table */}
           {dashboardData?.topRisks && (
             <div className="mt-8">
-              <div className="dashboard-card">
+              <div className="dashboard-card glass-card">
+                <h3 className="text-lg font-medium mb-4 text-gray-800">Top Risks</h3>
                 <TopRisksTable 
                   risks={dashboardData.topRisks} 
                   onRefresh={() => refetch()} 
@@ -225,11 +232,22 @@ export default function Dashboard() {
           {/* AI Insights Section */}
           {dashboardData?.insights && (
             <div className="mt-8">
-              <div className="dashboard-card ai-gradient-bg">
-                <AIInsights 
-                  insights={dashboardData.insights} 
-                  onRefresh={() => refetch()} 
-                />
+              <div className="dashboard-card ai-gradient-bg overflow-hidden">
+                <div className="absolute inset-0 bg-blue-600/5 backdrop-blur-xl"></div>
+                <div className="relative">
+                  <h3 className="text-lg font-medium mb-4 text-gray-800 flex items-center">
+                    <svg className="w-5 h-5 mr-2 text-blue-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 2a10 10 0 1 0 10 10H12V2z"></path>
+                      <path d="M12 2a10 10 0 0 1 10 10h-10V2z"></path>
+                      <circle cx="12" cy="12" r="4"></circle>
+                    </svg>
+                    AI-Powered Insights
+                  </h3>
+                  <AIInsights 
+                    insights={dashboardData.insights} 
+                    onRefresh={() => refetch()} 
+                  />
+                </div>
               </div>
             </div>
           )}
