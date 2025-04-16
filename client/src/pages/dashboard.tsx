@@ -7,6 +7,34 @@ import { generateAndDownloadPDF } from "@/lib/blob-pdf-export";
 import { generateAndDownloadCompletePDF } from "@/lib/complete-pdf-export";
 import { RiskSummary } from "@shared/schema";
 
+// Type definitions for AI dashboard insights
+type InsightType = "trend" | "warning" | "deadline" | "info";
+type InsightSeverity = "critical" | "high" | "medium" | "low";
+type ActionPriority = "critical" | "high" | "important" | "medium" | "low";
+type ActionType = "overdue" | "approval" | "mitigation" | "review" | "assignment" | "escalation";
+
+type KeyInsight = {
+  id: string;
+  title: string;
+  description: string;
+  type: InsightType;
+  severity: InsightSeverity;
+};
+
+type ActionItem = {
+  id: string;
+  title: string;
+  description: string;
+  priority: ActionPriority;
+  type: ActionType;
+  relatedRiskIds?: number[];
+};
+
+type AIRiskAnalysis = {
+  keyInsights: KeyInsight[];
+  actionItems: ActionItem[];
+};
+
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
 import { DashboardHeader } from "@/components/dashboard/dashboard-header";
@@ -16,6 +44,7 @@ import { RisksByCategory } from "@/components/dashboard/risks-by-category";
 import { RiskTrend } from "@/components/dashboard/risk-trend";
 import { TopRisksTable } from "@/components/dashboard/top-risks-table";
 import { AIInsights } from "@/components/dashboard/ai-insights";
+import { AIDashboardInsights } from "@/components/dashboard/ai-dashboard-insights";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Dashboard() {
@@ -31,6 +60,18 @@ export default function Dashboard() {
   const { data: dashboardData, refetch } = useQuery<RiskSummary>({
     queryKey: ["/api/dashboard"],
     staleTime: 1000 * 60 * 2, // 2 minutes
+  });
+  
+  // Fetch AI dashboard insights
+  const { 
+    data: aiInsightsData, 
+    refetch: refetchAiInsights,
+    error: aiInsightsError,
+    isError: isAiInsightsError 
+  } = useQuery<AIRiskAnalysis>({
+    queryKey: ["/api/ai/dashboard-insights"],
+    staleTime: 1000 * 60 * 15, // 15 minutes
+    retry: 1, // Only retry once if there's an error
   });
 
   const toggleSidebar = () => {
@@ -229,7 +270,41 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* AI Insights Section */}
+          {/* AI Dashboard Intelligence Section */}
+          <div className="mt-8">
+            <div className="dashboard-card bg-gradient-to-br from-white to-gray-50 overflow-hidden border-gray-100 shadow-sm">
+              {/* AI Dashboard Insights - New Component */}
+              {isAiInsightsError ? (
+                <div className="p-6 text-center">
+                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-red-100 text-red-500 mb-4">
+                    <svg className="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-medium mb-2">AI Insights Unavailable</h3>
+                  <p className="text-gray-600 mb-4">We couldn't load the AI-powered insights at this time.</p>
+                  <button
+                    onClick={() => refetchAiInsights()}
+                    className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  >
+                    <svg className="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+                    </svg>
+                    Try Again
+                  </button>
+                </div>
+              ) : (
+                <AIDashboardInsights
+                  isLoading={!aiInsightsData}
+                  keyInsights={aiInsightsData?.keyInsights || []}
+                  actionItems={aiInsightsData?.actionItems || []}
+                  onRefresh={() => refetchAiInsights()}
+                />
+              )}
+            </div>
+          </div>
+          
+          {/* Legacy AI Insights Section */}
           {dashboardData?.insights && (
             <div className="mt-8">
               <div className="dashboard-card ai-gradient-bg overflow-hidden">
