@@ -335,10 +335,10 @@ export class DatabaseStorage implements IStorage {
       return; // Database already has data, no need to seed
     }
     
-    // Create users
+    // Create users - hash passwords directly for seed data
     const adminUser = await this.createUser({
       username: "admin",
-      password: "admin123",
+      password: await this.hashPassword("admin123"),
       name: "Admin User",
       email: "admin@riskaipro.com",
       role: "Admin"
@@ -346,7 +346,7 @@ export class DatabaseStorage implements IStorage {
     
     const riskManager = await this.createUser({
       username: "riskmgr",
-      password: "risk123",
+      password: await this.hashPassword("risk123"),
       name: "Sarah Johnson",
       email: "sarah@riskaipro.com",
       role: "Risk Manager"
@@ -354,7 +354,7 @@ export class DatabaseStorage implements IStorage {
     
     const projectManager = await this.createUser({
       username: "projmgr",
-      password: "proj123",
+      password: await this.hashPassword("proj123"),
       name: "Michael Chen",
       email: "michael@riskaipro.com",
       role: "Project Manager"
@@ -362,7 +362,7 @@ export class DatabaseStorage implements IStorage {
     
     const viewer = await this.createUser({
       username: "viewer",
-      password: "view123",
+      password: await this.hashPassword("view123"),
       name: "Alex Thompson",
       email: "alex@riskaipro.com",
       role: "Viewer"
