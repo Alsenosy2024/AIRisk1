@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { downloadAsJson } from "@/lib/utils";
 import { generateDashboardPDF } from "@/lib/pdf-export";
+import { generateSimplePDF } from "@/lib/simple-pdf-export";
 import { RiskSummary } from "@shared/schema";
 
 import { Sidebar } from "@/components/layout/sidebar";
@@ -63,6 +64,21 @@ export default function Dashboard() {
     if (!dashboardData) return;
     
     try {
+      // First try with the simple PDF export as a fallback
+      try {
+        const simplePdf = generateSimplePDF(dashboardData);
+        simplePdf.save('RiskManagement-Dashboard-Report.pdf');
+        
+        toast({
+          title: "PDF Export Successful",
+          description: "Dashboard has been exported as a PDF report",
+        });
+        return;
+      } catch (simpleError) {
+        console.error("Simple PDF export failed, trying comprehensive export:", simpleError);
+      }
+      
+      // If simple export fails, try the comprehensive one
       // Gather chart canvas images if available
       const chartImages: {
         heatmap?: string;

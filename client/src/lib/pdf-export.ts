@@ -1,8 +1,9 @@
 import { jsPDF } from "jspdf";
-import 'jspdf-autotable';
 import { RiskSummary } from "@shared/schema";
 import { getColorBySeverity, getColorByCategory } from "@/lib/utils";
 import { HeatmapCell, getSeverity } from "@/lib/risk-utils";
+// Import jspdf-autotable to extend jsPDF with autoTable method
+import 'jspdf-autotable';
 
 /**
  * Generates a comprehensive PDF report of the dashboard
