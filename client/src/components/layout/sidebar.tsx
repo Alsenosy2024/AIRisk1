@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useLocation, useRoute, Link } from "wouter";
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/contexts/auth-context";
+import { useAuth } from "@/hooks/use-auth";
 import { 
   ShieldAlert, 
   LayoutDashboard, 
@@ -18,7 +18,7 @@ import { Button } from "@/components/ui/button";
 
 export function Sidebar() {
   const [location] = useLocation();
-  const { user, logout } = useAuth();
+  const { user, logoutMutation } = useAuth();
 
   return (
     <div className="hidden md:flex flex-col w-64 bg-gray-900 text-white transition-all duration-300">
@@ -104,7 +104,7 @@ export function Sidebar() {
             variant="ghost" 
             size="icon" 
             className="text-gray-400 hover:text-white hover:bg-gray-700 rounded-full"
-            onClick={() => logout()}
+            onClick={() => logoutMutation.mutate()}
             title="Logout"
           >
             <LogOut className="h-4 w-4" />

@@ -19,7 +19,7 @@ import {
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useAuth } from "@/contexts/auth-context";
+import { useAuth } from "@/hooks/use-auth";
 import { Input } from "@/components/ui/input";
 
 interface HeaderProps {
@@ -28,7 +28,7 @@ interface HeaderProps {
 
 export function Header({ toggleSidebar }: HeaderProps) {
   const [location] = useLocation();
-  const { user, logout } = useAuth();
+  const { user, logoutMutation } = useAuth();
   
   // Map routes to page titles
   const pageTitles: Record<string, string> = {
