@@ -74,7 +74,7 @@ export function Header({ toggleSidebar }: HeaderProps) {
           <div className="flex items-center space-x-1 sm:space-x-3">
             <HelpButton />
             <NotificationBell />
-            <UserMenu user={user} onLogout={logout} />
+            <UserMenu user={user} onLogout={() => logoutMutation.mutate()} />
           </div>
         </div>
       </div>
