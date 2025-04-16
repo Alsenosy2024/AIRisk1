@@ -83,7 +83,7 @@ export async function sendConfirmationEmail(email: string, name: string) {
 }
 
 // Generate password reset token and send reset email
-export async function sendPasswordResetEmail(userId: number, email: string, name: string): Promise<string | null> {
+export async function sendPasswordResetEmail(userId: number, email: string, name: string): Promise<{ token: string | null, previewUrl?: string }> {
   try {
     // Generate unique reset token
     const token = crypto.randomBytes(32).toString('hex');
@@ -97,6 +97,9 @@ export async function sendPasswordResetEmail(userId: number, email: string, name
       expires 
     });
     
+    // Get the base URL for the app
+    const baseUrl = process.env.APP_URL || window.location.origin || 'http://localhost:5000';
+    
     // Send the reset email
     const info = await transporter.sendMail({
       from: '"Risk Management System" <noreply@riskpro.com>',
@@ -109,7 +112,7 @@ export async function sendPasswordResetEmail(userId: number, email: string, name
           <p>We received a request to reset your password for your Risk Management System account.</p>
           <p>To reset your password, click the button below. This link will expire in 1 hour.</p>
           <div style="margin: 30px 0;">
-            <a href="/reset-password?token=${token}" 
+            <a href="${baseUrl}/reset-password?token=${token}" 
                style="background-color: #4F46E5; color: white; padding: 12px 20px; text-decoration: none; border-radius: 4px; font-weight: bold;">
               Reset Password
             </a>
@@ -122,15 +125,17 @@ export async function sendPasswordResetEmail(userId: number, email: string, name
 
     console.log('Password reset email sent: %s', info.messageId);
     
-    // For ethereal email, log the URL where the message can be viewed
+    let previewUrl;
+    // For ethereal email, get the URL where the message can be viewed
     if (process.env.NODE_ENV !== 'production') {
-      console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
+      previewUrl = nodemailer.getTestMessageUrl(info);
+      console.log('Preview URL: %s', previewUrl);
     }
     
-    return token;
+    return { token, previewUrl };
   } catch (error) {
     console.error('Error sending password reset email:', error);
-    return null;
+    return { token: null };
   }
 }
 

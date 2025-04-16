@@ -428,14 +428,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (!user) {
         // Don't reveal that the email doesn't exist for security reasons
-        return res.status(200).json({ message: "If your email is registered, you will receive a reset link shortly" });
+        return res.status(200).json({ 
+          message: "If your email is registered, you will receive a reset link shortly"
+        });
       }
       
       // Generate and send reset token
-      const token = await sendPasswordResetEmail(user.id, user.email, user.name);
+      const result = await sendPasswordResetEmail(user.id, user.email, user.name);
       
-      if (!token) {
+      if (!result.token) {
         return res.status(500).json({ message: "Failed to send password reset email" });
+      }
+      
+      // In development mode, include the Ethereal preview URL
+      if (process.env.NODE_ENV !== 'production' && result.previewUrl) {
+        return res.status(200).json({
+          message: "If your email is registered, you will receive a reset link shortly",
+          devMode: true,
+          previewUrl: result.previewUrl
+        });
       }
       
       res.status(200).json({ 
