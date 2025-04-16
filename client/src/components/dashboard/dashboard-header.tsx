@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { useQuery } from "@tanstack/react-query";
 import { RiskForm } from "@/components/risks/risk-form";
+import { Project } from "@shared/schema";
 
 interface DashboardHeaderProps {
   onCreateRisk?: () => void;
@@ -27,7 +28,7 @@ export function DashboardHeader({ onCreateRisk, onExport }: DashboardHeaderProps
   const [selectedProject, setSelectedProject] = useState("all");
 
   // Fetch projects for dropdown
-  const { data: projects = [] } = useQuery({
+  const { data: projects = [] } = useQuery<Project[]>({
     queryKey: ["/api/projects"],
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
@@ -42,24 +43,27 @@ export function DashboardHeader({ onCreateRisk, onExport }: DashboardHeaderProps
   };
 
   return (
-    <div className="mb-6">
+    <div className="mb-8">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-800">Risk Management Dashboard</h2>
-          <p className="text-gray-600 mt-1">Overview of project risks and current status</p>
+          <h2 className="text-3xl font-bold text-gray-800 tracking-tight">Risk Management Dashboard</h2>
+          <p className="text-gray-600 mt-2 flex items-center">
+            <span className="inline-block h-1.5 w-1.5 rounded-full bg-blue-500 mr-2"></span>
+            Overview of project risks and current status
+          </p>
         </div>
-        <div className="mt-4 md:mt-0 flex space-x-3">
+        <div className="mt-5 md:mt-0 flex flex-wrap gap-3">
           <Select
             value={selectedProject}
             onValueChange={setSelectedProject}
           >
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-[180px] rounded-xl backdrop-blur-sm bg-white/70 border-gray-200/70 shadow-sm">
               <SelectValue placeholder="All Projects" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="rounded-xl backdrop-blur-md border-gray-200/70">
               <SelectItem value="all">All Projects</SelectItem>
-              {projects.map((project) => (
-                <SelectItem key={project.id} value={project.id}>
+              {projects.map((project: Project) => (
+                <SelectItem key={project.id} value={String(project.id)}>
                   {project.name}
                 </SelectItem>
               ))}
@@ -69,14 +73,14 @@ export function DashboardHeader({ onCreateRisk, onExport }: DashboardHeaderProps
           <Button 
             variant="default" 
             onClick={handleExport}
-            className="bg-blue-600 hover:bg-blue-700"
+            className="button-modern bg-blue-50 text-blue-600 hover:bg-blue-100 border-blue-200/30"
           >
             <FileDown className="mr-2 h-4 w-4" />
             Export
           </Button>
           
           <Button 
-            className="bg-green-600 hover:bg-green-700"
+            className="button-modern bg-green-50 text-green-600 hover:bg-green-100 border-green-200/30"
             onClick={() => setIsDialogOpen(true)}
           >
             <FilePlus className="mr-2 h-4 w-4" />
@@ -87,9 +91,13 @@ export function DashboardHeader({ onCreateRisk, onExport }: DashboardHeaderProps
 
       {/* New Risk Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Add New Risk</DialogTitle>
+        <DialogContent className="max-h-[90vh] overflow-y-auto max-w-2xl rounded-2xl border-gray-100/70 backdrop-blur-xl bg-white/95 shadow-xl">
+          <DialogHeader className="pb-2">
+            <DialogTitle className="text-xl font-semibold text-gray-800 flex items-center">
+              <FilePlus className="mr-2 h-5 w-5 text-blue-500" />
+              Add New Risk
+            </DialogTitle>
+            <p className="text-gray-500 text-sm mt-1">Create a new risk entry to track and manage</p>
           </DialogHeader>
           <RiskForm
             onSuccess={() => {
