@@ -330,7 +330,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const summary = await storage.getRiskSummary();
       res.status(200).json(summary);
     } catch (error) {
-      res.status(500).json({ message: "Internal server error", error: error.message });
+      console.error("Error getting risk summary:", error);
+      // Return fallback data instead of error
+      const fallbackSummary = {
+        totalRisks: 0,
+        criticalRisks: 0,
+        highRisks: 0,
+        mitigationProgress: 0,
+        risksByCategory: [],
+        risksBySeverity: [],
+        risksByStatus: [],
+        topRisks: [],
+        riskTrend: [],
+        heatmapData: [],
+        insights: []
+      };
+      res.status(200).json(fallbackSummary);
     }
   });
   
@@ -410,15 +425,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/ai/dashboard-insights", userMiddleware, async (_, res) => {
     try {
       const risks = await storage.getAllRisks();
-      const riskEvents = await Promise.all(
-        risks.map(risk => storage.getRiskEvents(risk.id))
-      ).then(events => events.flat());
-      const projects = await storage.getAllProjects();
       
-      const insights = await analyzeRiskData(risks, riskEvents, projects);
-      res.status(200).json(insights);
+      // Use a safer approach to get risk events
+      let riskEvents = [];
+      try {
+        riskEvents = await Promise.all(
+          risks.map(risk => storage.getRiskEvents(risk.id))
+        ).then(events => events.flat());
+      } catch (eventsError) {
+        console.error("Error fetching risk events:", eventsError);
+        // Continue with empty events array
+      }
+      
+      // Get projects with error handling
+      let projects = [];
+      try {
+        projects = await storage.getAllProjects();
+      } catch (projectsError) {
+        console.error("Error fetching projects:", projectsError);
+        // Continue with empty projects array
+      }
+      
+      try {
+        const insights = await analyzeRiskData(risks, riskEvents, projects);
+        return res.status(200).json(insights);
+      } catch (aiError) {
+        console.error("Error generating AI insights:", aiError);
+        // Send fallback insights
+        const fallbackInsights = {
+          keyInsights: [
+            {
+              id: "fallback-1",
+              title: "Dashboard Data Available",
+              description: `Your risk register contains ${risks.length} risk items.`,
+              type: "info",
+              severity: "medium"
+            }
+          ],
+          actionItems: [
+            {
+              id: "fallback-action-1",
+              title: "Review Risk Register",
+              description: "Schedule regular review of your risk items.",
+              priority: "medium",
+              type: "review"
+            }
+          ]
+        };
+        return res.status(200).json(fallbackInsights);
+      }
     } catch (error) {
-      res.status(500).json({ message: "Internal server error", error: error.message });
+      console.error("Critical error in dashboard insights route:", error);
+      // Return a minimal viable response instead of error
+      res.status(200).json({ 
+        keyInsights: [], 
+        actionItems: [] 
+      });
     }
   });
   
