@@ -2,9 +2,9 @@ import { jsPDF } from "jspdf";
 import { RiskSummary } from "@shared/schema";
 
 /**
- * A simple PDF export function that doesn't depend on autoTable
+ * Generate a PDF and force download using Blob and URL.createObjectURL
  */
-export function generateSimplePDF(dashboardData: RiskSummary) {
+export function generateAndDownloadPDF(dashboardData: RiskSummary) {
   // Initialize PDF document
   const pdf = new jsPDF();
   
@@ -49,8 +49,26 @@ export function generateSimplePDF(dashboardData: RiskSummary) {
     yPos += 10;
   });
   
-  // Force download the PDF file
-  pdf.save('RiskManagement-Dashboard-Report.pdf');
+  // Get the PDF as a blob
+  const pdfBlob = pdf.output('blob');
+  
+  // Create a URL for the blob
+  const url = URL.createObjectURL(pdfBlob);
+  
+  // Create a link element
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'RiskManagement-Dashboard-Report.pdf';
+  
+  // Append to the document
+  document.body.appendChild(link);
+  
+  // Trigger click
+  link.click();
+  
+  // Clean up
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
   
   return pdf;
 }
