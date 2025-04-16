@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
+import { CheckCircle2, AlertCircle, Loader2, ExternalLink } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -23,6 +23,7 @@ export function ForgotPasswordForm({ onBack }: { onBack: () => void }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -34,6 +35,7 @@ export function ForgotPasswordForm({ onBack }: { onBack: () => void }) {
   const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
     setError(null);
+    setPreviewUrl(null);
     
     try {
       const response = await apiRequest("POST", "/api/forgot-password", data);
@@ -43,7 +45,13 @@ export function ForgotPasswordForm({ onBack }: { onBack: () => void }) {
         throw new Error(error.message || "Something went wrong");
       }
       
+      const result = await response.json();
       setIsSubmitted(true);
+      
+      // Handle dev mode with Ethereal Email preview URL
+      if (result.devMode && result.previewUrl) {
+        setPreviewUrl(result.previewUrl);
+      }
       
       toast({
         title: "Reset email sent",
@@ -125,6 +133,25 @@ export function ForgotPasswordForm({ onBack }: { onBack: () => void }) {
               We've sent a password reset link to your email address.
               <br />The link will expire in 1 hour.
             </p>
+            
+            {previewUrl && (
+              <div className="mt-6 p-4 bg-muted rounded-md border text-left">
+                <h4 className="font-medium mb-2 flex items-center gap-1">
+                  <span>Development Mode</span>
+                </h4>
+                <p className="text-sm text-muted-foreground mb-3">
+                  Since we're using Ethereal Email for testing, you can view the email here:
+                </p>
+                <a 
+                  href={previewUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary flex items-center gap-1 text-sm hover:underline"
+                >
+                  View Email <ExternalLink className="h-3 w-3" />
+                </a>
+              </div>
+            )}
           </div>
         )}
       </CardContent>

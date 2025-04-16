@@ -98,7 +98,7 @@ export async function sendPasswordResetEmail(userId: number, email: string, name
     });
     
     // Get the base URL for the app
-    const baseUrl = process.env.APP_URL || window.location.origin || 'http://localhost:5000';
+    const baseUrl = process.env.APP_URL || 'http://localhost:5000';
     
     // Send the reset email
     const info = await transporter.sendMail({
@@ -125,11 +125,19 @@ export async function sendPasswordResetEmail(userId: number, email: string, name
 
     console.log('Password reset email sent: %s', info.messageId);
     
-    let previewUrl;
+    let previewUrl: string | undefined;
     // For ethereal email, get the URL where the message can be viewed
     if (process.env.NODE_ENV !== 'production') {
-      previewUrl = nodemailer.getTestMessageUrl(info);
-      console.log('Preview URL: %s', previewUrl);
+      try {
+        // The getTestMessageUrl function can return string | false
+        const messageUrl = nodemailer.getTestMessageUrl(info);
+        if (messageUrl) {
+          previewUrl = messageUrl.toString();
+          console.log('Preview URL: %s', previewUrl);
+        }
+      } catch (error) {
+        console.error('Error getting preview URL:', error);
+      }
     }
     
     return { token, previewUrl };
