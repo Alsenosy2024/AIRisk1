@@ -79,26 +79,33 @@ export function setupAuth(app: Express) {
   // Register route - create a new user
   app.post("/api/register", async (req, res, next) => {
     try {
+      console.log("Registration attempt with data:", JSON.stringify(req.body, null, 2));
       const { username, password, name, email } = req.body;
       
       if (!username || !password || !name || !email) {
+        console.log("Registration failed - missing fields:", { username: !!username, password: !!password, name: !!name, email: !!email });
         return res.status(400).json({ message: "All fields are required" });
       }
 
       // Check if username already exists
       const existingUser = await storage.getUserByUsername(username);
       if (existingUser) {
+        console.log("Registration failed - username already exists:", username);
         return res.status(409).json({ message: "Username already exists" });
       }
 
       // Check if email already exists
       const existingEmail = await storage.getUserByEmail(email);
       if (existingEmail) {
+        console.log("Registration failed - email already exists:", email);
         return res.status(409).json({ message: "Email already exists" });
       }
 
+      console.log("Hashing password and creating user");
       // Hash password and create user
       const hashedPassword = await storage.hashPassword(password);
+      console.log("Password hashed successfully");
+      
       const user = await storage.createUser({
         username,
         password: hashedPassword,
@@ -106,13 +113,16 @@ export function setupAuth(app: Express) {
         email,
         role: "Viewer" // Default role for new users
       });
+      console.log("User created successfully:", user.id);
 
       // Log the user in after registration
       req.login(user, (err) => {
         if (err) {
+          console.error("Login after registration failed:", err);
           return next(err);
         }
         
+        console.log("User logged in after registration:", user.id);
         // Return user without password
         const { password: _, ...userWithoutPassword } = user;
         return res.status(201).json(userWithoutPassword);
@@ -128,20 +138,27 @@ export function setupAuth(app: Express) {
 
   // Login route
   app.post("/api/login", (req, res, next) => {
+    console.log("Login attempt with data:", JSON.stringify(req.body, null, 2));
+    
     passport.authenticate("local", (err, user, info) => {
       if (err) {
+        console.error("Login authentication error:", err);
         return next(err);
       }
       
       if (!user) {
-        return res.status(401).json({ message: info.message || "Invalid credentials" });
+        console.log("Login failed - Invalid credentials:", info?.message);
+        return res.status(401).json({ message: info?.message || "Invalid credentials" });
       }
       
+      console.log("User authenticated successfully, proceeding to login");
       req.login(user, (err) => {
         if (err) {
+          console.error("Login session creation error:", err);
           return next(err);
         }
         
+        console.log("Login successful for user:", user.id);
         return res.status(200).json(user);
       });
     })(req, res, next);
