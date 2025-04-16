@@ -11,6 +11,7 @@ import AIGenerator from "@/pages/ai-generator";
 import Reports from "@/pages/reports";
 import Settings from "@/pages/settings";
 import AuthPage from "@/pages/auth-page";
+import ResetPasswordPage from "@/pages/reset-password-page";
 import RiskIntelligence from "@/pages/risk-intelligence";
 import { ThemeProvider } from "@/components/theme-provider";
 
@@ -24,6 +25,7 @@ function Router() {
       <ProtectedRoute path="/reports" component={Reports} />
       <ProtectedRoute path="/settings" component={Settings} />
       <Route path="/auth" component={AuthPage} />
+      <Route path="/reset-password" component={ResetPasswordPage} />
       <Route component={NotFound} />
     </Switch>
   );
