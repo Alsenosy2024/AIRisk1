@@ -74,11 +74,36 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user;
+  }
+
+  async getUserByFirebaseUid(firebaseUid: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.firebase_uid, firebaseUid));
+    return user;
+  }
+
+  async updateUserFirebaseUid(userId: number, firebaseUid: string): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ firebase_uid: firebaseUid })
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
+  }
+
+  async verifyPassword(supplied: string, stored: string): Promise<boolean> {
+    return comparePasswords(supplied, stored);
+  }
+
+  async hashPassword(password: string): Promise<string> {
+    return hashPassword(password);
+  }
+
   async createUser(insertUser: InsertUser): Promise<User> {
-    const [user] = await db.insert(users).values({
-      ...insertUser,
-      password: await hashPassword(insertUser.password),
-    }).returning();
+    // We won't hash the password here as auth.ts is already calling hashPassword before this
+    const [user] = await db.insert(users).values(insertUser).returning();
     return user;
   }
 
