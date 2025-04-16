@@ -4,6 +4,7 @@ import { downloadAsJson } from "@/lib/utils";
 import { generateDashboardPDF } from "@/lib/pdf-export";
 import { generateSimplePDF } from "@/lib/simple-pdf-export";
 import { generateAndDownloadPDF } from "@/lib/blob-pdf-export";
+import { generateAndDownloadCompletePDF } from "@/lib/complete-pdf-export";
 import { RiskSummary } from "@shared/schema";
 
 import { Sidebar } from "@/components/layout/sidebar";
@@ -65,20 +66,20 @@ export default function Dashboard() {
     if (!dashboardData) return;
     
     try {
-      // Try blob-based PDF export first
+      // Try complete comprehensive PDF export first
       try {
-        console.log("Using blob-based PDF export method...");
-        generateAndDownloadPDF(dashboardData);
-        console.log("Blob PDF export completed");
+        console.log("Using comprehensive PDF export method...");
+        generateAndDownloadCompletePDF(dashboardData);
+        console.log("Comprehensive PDF export completed");
         
         toast({
           title: "PDF Export Successful",
-          description: "Dashboard has been exported as a PDF report. Check your downloads folder.",
+          description: "Dashboard has been exported as a comprehensive PDF report with all elements. Check your downloads folder.",
           duration: 5000,
         });
         return;
-      } catch (blobError) {
-        console.error("Blob PDF export failed, trying alternative method:", blobError);
+      } catch (completeError) {
+        console.error("Comprehensive PDF export failed, trying simpler method:", completeError);
       }
       
       // If simple export fails, try the comprehensive one
