@@ -227,14 +227,119 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Invalid credentials" });
       }
       
-      // In a real app, verify password hash here
+      // Verify password
+      const isPasswordValid = await storage.verifyPassword(password, user.password || "");
+      
+      if (!isPasswordValid) {
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+      
+      // Set user in session
+      if (req.session) {
+        // @ts-ignore
+        req.session.userId = user.id;
+      }
       
       // Return user without password
       const { password: _, ...userWithoutPassword } = user;
       res.status(200).json(userWithoutPassword);
       
     } catch (error) {
-      res.status(500).json({ message: "Internal server error", error: error.message });
+      console.error("Login error:", error);
+      res.status(500).json({ message: "Internal server error", error: error instanceof Error ? error.message : "Unknown error" });
+    }
+  });
+  
+  // Register route
+  app.post("/api/register", async (req, res) => {
+    try {
+      const { username, password, name, email } = req.body;
+      
+      if (!username || !password || !name || !email) {
+        return res.status(400).json({ message: "All fields are required" });
+      }
+      
+      // Check if username already exists
+      const existingUser = await storage.getUserByUsername(username);
+      if (existingUser) {
+        return res.status(409).json({ message: "Username already exists" });
+      }
+      
+      // Check if email already exists
+      const existingEmail = await storage.getUserByEmail(email);
+      if (existingEmail) {
+        return res.status(409).json({ message: "Email already exists" });
+      }
+      
+      // Hash password and create user
+      const hashedPassword = await storage.hashPassword(password);
+      const user = await storage.createUser({
+        username,
+        password: hashedPassword,
+        name,
+        email,
+        role: "Viewer" // Default role for new users
+      });
+      
+      // Set user in session
+      if (req.session) {
+        // @ts-ignore
+        req.session.userId = user.id;
+      }
+      
+      // Return user without password
+      const { password: _, ...userWithoutPassword } = user;
+      res.status(201).json(userWithoutPassword);
+      
+    } catch (error) {
+      console.error("Registration error:", error);
+      res.status(500).json({ message: "Internal server error", error: error instanceof Error ? error.message : "Unknown error" });
+    }
+  });
+  
+  // Logout route
+  app.post("/api/logout", (req, res) => {
+    try {
+      // Clear session
+      if (req.session) {
+        req.session.destroy(err => {
+          if (err) {
+            console.error("Error destroying session:", err);
+            return res.status(500).json({ message: "Failed to logout" });
+          }
+          res.status(200).json({ message: "Logged out successfully" });
+        });
+      } else {
+        res.status(200).json({ message: "Logged out successfully" });
+      }
+    } catch (error) {
+      console.error("Logout error:", error);
+      res.status(500).json({ message: "Internal server error", error: error instanceof Error ? error.message : "Unknown error" });
+    }
+  });
+  
+  // Get current user route
+  app.get("/api/user", async (req, res) => {
+    try {
+      // Check if user is in session
+      // @ts-ignore
+      if (req.session && req.session.userId) {
+        // @ts-ignore
+        const userId = req.session.userId;
+        const user = await storage.getUser(userId);
+        
+        if (user) {
+          // Return user without password
+          const { password: _, ...userWithoutPassword } = user;
+          return res.status(200).json(userWithoutPassword);
+        }
+      }
+      
+      // No user in session
+      res.status(401).json({ message: "Not authenticated" });
+    } catch (error) {
+      console.error("Error fetching current user:", error);
+      res.status(500).json({ message: "Internal server error", error: error instanceof Error ? error.message : "Unknown error" });
     }
   });
   

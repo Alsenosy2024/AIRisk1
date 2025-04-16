@@ -22,6 +22,22 @@ async function hashPassword(password: string) {
   return `${buf.toString("hex")}.${salt}`;
 }
 
+// Verify password against stored hash
+async function verifyPassword(supplied: string, stored: string): Promise<boolean> {
+  try {
+    const [hashed, salt] = stored.split(".");
+    if (!hashed || !salt) return false;
+    
+    const hashedBuf = Buffer.from(hashed, "hex");
+    const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
+    
+    return timingSafeEqual(hashedBuf, suppliedBuf);
+  } catch (error) {
+    console.error("Password verification error:", error);
+    return false;
+  }
+}
+
 // Helper function to calculate severity based on probability and impact
 function calculateSeverity(probability: number, impact: number): typeof RISK_SEVERITY[number] {
   const score = probability * impact;
@@ -46,6 +62,10 @@ export interface IStorage {
   getUserByFirebaseUid(firebaseUid: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUserFirebaseUid(userId: number, firebaseUid: string): Promise<User>;
+  
+  // Authentication operations
+  verifyPassword(supplied: string, stored: string): Promise<boolean>;
+  hashPassword(password: string): Promise<string>;
   
   // Project operations
   getProject(id: number): Promise<Project | undefined>;
