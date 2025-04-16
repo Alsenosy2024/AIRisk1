@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { downloadAsJson } from "@/lib/utils";
 import { generateDashboardPDF } from "@/lib/pdf-export";
+import { RiskSummary } from "@shared/schema";
 
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
@@ -24,7 +25,7 @@ export default function Dashboard() {
   const trendChartRef = useRef<HTMLCanvasElement>(null);
 
   // Fetch dashboard data
-  const { data: dashboardData, refetch } = useQuery({
+  const { data: dashboardData, refetch } = useQuery<RiskSummary>({
     queryKey: ["/api/dashboard"],
     staleTime: 1000 * 60 * 2, // 2 minutes
   });

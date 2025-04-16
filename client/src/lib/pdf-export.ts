@@ -1,5 +1,5 @@
 import { jsPDF } from "jspdf";
-import autoTable from 'jspdf-autotable';
+import 'jspdf-autotable';
 import { RiskSummary } from "@shared/schema";
 import { getColorBySeverity, getColorByCategory } from "@/lib/utils";
 import { HeatmapCell, getSeverity } from "@/lib/risk-utils";
@@ -63,7 +63,7 @@ export function generateDashboardPDF(
     ["Mitigation Progress", `${dashboardData.mitigationProgress}%`]
   ];
   
-  const tableResult = autoTable(pdf, {
+  const tableResult = (pdf as any).autoTable({
     startY: currentY,
     head: [["Metric", "Value"]],
     body: metricsData,
@@ -126,7 +126,7 @@ export function generateDashboardPDF(
     cat.category, cat.count.toString()
   ]);
   
-  const categoryResult = autoTable(pdf, {
+  const categoryResult = (pdf as any).autoTable({
     startY: currentY,
     head: [["Category", "Count"]],
     body: categoryData,
@@ -164,7 +164,7 @@ export function generateDashboardPDF(
     trend.medium.toString()
   ]);
   
-  const trendResult = autoTable(pdf, {
+  const trendResult = (pdf as any).autoTable({
     startY: currentY,
     head: [["Month", "Critical", "High", "Medium"]],
     body: trendData,
@@ -199,7 +199,7 @@ export function generateDashboardPDF(
     risk.status
   ]);
   
-  const topRisksResult = autoTable(pdf, {
+  const topRisksResult = (pdf as any).autoTable({
     startY: currentY,
     head: [["Reference", "Title", "Category", "Severity", "Status"]],
     body: topRisksData,
@@ -233,7 +233,7 @@ export function generateDashboardPDF(
     insight.description.substring(0, 100) + (insight.description.length > 100 ? "..." : "")
   ]);
   
-  const insightResult = autoTable(pdf, {
+  const insightResult = (pdf as any).autoTable({
     startY: currentY,
     head: [["Insight", "Type", "Description"]],
     body: insightData,
@@ -470,7 +470,7 @@ function addHeatmapTable(pdf: jsPDF, heatmapData: { impact: number; probability:
     }
   }
   
-  const result = autoTable(pdf, {
+  const result = (pdf as any).autoTable({
     startY: startY,
     head: [["", "Very Low", "Low", "Medium", "High", "Very High"]],
     body: [
