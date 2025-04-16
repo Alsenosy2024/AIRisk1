@@ -113,6 +113,15 @@ export class MemStorage implements IStorage {
   
   sessionStore: session.Store;
   
+  // Authentication helpers
+  async verifyPassword(supplied: string, stored: string): Promise<boolean> {
+    return verifyPassword(supplied, stored);
+  }
+  
+  async hashPassword(password: string): Promise<string> {
+    return hashPassword(password);
+  }
+  
   constructor() {
     this.users = new Map();
     this.projects = new Map();
