@@ -1,9 +1,8 @@
-import { createContext, useContext, ReactNode } from 'react';
-import { apiRequest, queryClient, getQueryFn } from '@/lib/queryClient';
+import { createContext, useState, useEffect, useContext, ReactNode } from 'react';
+import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { useQuery, useMutation } from '@tanstack/react-query';
 
-// Type for our auth user
+// Types
 type User = {
   id: number;
   username: string;
@@ -24,7 +23,6 @@ type RegisterCredentials = {
   email: string;
 };
 
-// Auth context type
 type AuthContextType = {
   user: User | null;
   isLoading: boolean;
@@ -43,37 +41,52 @@ export const AuthContext = createContext<AuthContextType | null>(null);
 
 // Provider component
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
-  
-  // Use React Query to fetch the current user
-  const { 
-    data: user,
-    isLoading: isUserLoading,
-    error: userError,
-    refetch: refetchUser
-  } = useQuery<User | null>({
-    queryKey: ['/api/user'],
-    queryFn: getQueryFn({ on401: 'returnNull' }),
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    retry: false
-  });
 
-  // Login mutation
-  const { mutateAsync: loginMutation, isPending: isLoginPending } = useMutation({
-    mutationFn: async (credentials: LoginCredentials) => {
+  // Check if user is already logged in
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const response = await fetch('/api/user', {
+          credentials: 'include'
+        });
+        
+        if (response.ok) {
+          const userData = await response.json();
+          setUser(userData);
+        } else {
+          setUser(null);
+        }
+      } catch (error) {
+        console.error('Error fetching user:', error);
+        setUser(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchUser();
+  }, []);
+
+  // Login function
+  const login = async (credentials: LoginCredentials) => {
+    setIsLoading(true);
+    
+    try {
       const response = await apiRequest('POST', '/api/login', credentials);
-      return await response.json() as User;
-    },
-    onSuccess: (userData) => {
-      // Invalidate user query
+      const userData = await response.json();
+      setUser(userData);
+      
+      // Invalidate any cached data that might depend on authentication
       queryClient.invalidateQueries({ queryKey: ['/api/user'] });
       
       toast({
         title: 'Login successful',
         description: `Welcome back, ${userData.name}`,
       });
-    },
-    onError: (error) => {
+    } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to login';
       
       toast({
@@ -81,25 +94,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         description: message,
         variant: 'destructive',
       });
+      
+      throw error;
+    } finally {
+      setIsLoading(false);
     }
-  });
+  };
 
-  // Register mutation
-  const { mutateAsync: registerMutation, isPending: isRegisterPending } = useMutation({
-    mutationFn: async (credentials: RegisterCredentials) => {
+  // Register function
+  const register = async (credentials: RegisterCredentials) => {
+    setIsLoading(true);
+    
+    try {
       const response = await apiRequest('POST', '/api/register', credentials);
-      return await response.json() as User;
-    },
-    onSuccess: (userData) => {
-      // Invalidate user query
+      const userData = await response.json();
+      setUser(userData);
+      
+      // Invalidate any cached data that might depend on authentication
       queryClient.invalidateQueries({ queryKey: ['/api/user'] });
       
       toast({
         title: 'Registration successful',
         description: `Welcome, ${userData.name}`,
       });
-    },
-    onError: (error) => {
+    } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to register';
       
       toast({
@@ -107,24 +125,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         description: message,
         variant: 'destructive',
       });
+      
+      throw error;
+    } finally {
+      setIsLoading(false);
     }
-  });
+  };
 
-  // Logout mutation
-  const { mutateAsync: logoutMutation, isPending: isLogoutPending } = useMutation({
-    mutationFn: async () => {
+  // Logout function
+  const logout = async () => {
+    setIsLoading(true);
+    
+    try {
       await apiRequest('POST', '/api/logout');
-    },
-    onSuccess: () => {
-      // Clear all cached queries
+      
+      setUser(null);
       queryClient.clear();
       
       toast({
         title: 'Logged out',
         description: 'You have been logged out successfully',
       });
-    },
-    onError: (error) => {
+    } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to logout';
       
       toast({
@@ -132,24 +154,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         description: message,
         variant: 'destructive',
       });
+      
+      throw error;
+    } finally {
+      setIsLoading(false);
     }
-  });
-  
-  // Login, register, and logout wrapper functions
-  const login = async (credentials: LoginCredentials) => {
-    await loginMutation(credentials);
   };
-  
-  const register = async (credentials: RegisterCredentials) => {
-    await registerMutation(credentials);
-  };
-  
-  const logout = async () => {
-    await logoutMutation();
-  };
-  
-  // Combined loading state
-  const isLoading = isUserLoading || isLoginPending || isRegisterPending || isLogoutPending;
 
   // Derive role-based permissions
   const isAdmin = Boolean(user && user.role === 'Admin');

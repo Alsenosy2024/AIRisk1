@@ -6,7 +6,7 @@ import { analyzeRiskData } from "./services/ai-insights-service";
 import { z } from "zod";
 import { RISK_CATEGORIES, insertRiskSchema, insertRiskEventSchema, insertInsightSchema } from "@shared/schema";
 import { randomBytes } from "crypto";
-import { verifyFirebaseToken, findOrCreateUser } from "./firebase-auth";
+import { setupAuth } from "./auth";
 
 // Simple auth middleware - in a real app use proper auth
 function userMiddleware(req: Request, res: Response, next: Function) {
@@ -51,6 +51,8 @@ function roleMiddleware(allowedRoles: string[]) {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Set up authentication
+  const { requireAuth, requireRole } = setupAuth(app);
   // Firebase Auth routes
   app.post("/api/auth/verify-token", async (req, res) => {
     try {
