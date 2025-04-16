@@ -126,7 +126,7 @@ export function generateDashboardPDF(
     cat.category, cat.count.toString()
   ]);
   
-  autoTable(pdf, {
+  const categoryResult = autoTable(pdf, {
     startY: currentY,
     head: [["Category", "Count"]],
     body: categoryData,
@@ -136,7 +136,7 @@ export function generateDashboardPDF(
     margin: { left: margin, right: margin }
   });
   
-  currentY = (pdf as any).lastAutoTable.finalY + 15;
+  currentY = (categoryResult.lastAutoTable || categoryResult).finalY + 15;
   
   // Check if we need a new page
   if (currentY > pageHeight - 70) {
@@ -164,7 +164,7 @@ export function generateDashboardPDF(
     trend.medium.toString()
   ]);
   
-  autoTable(pdf, {
+  const trendResult = autoTable(pdf, {
     startY: currentY,
     head: [["Month", "Critical", "High", "Medium"]],
     body: trendData,
@@ -174,7 +174,7 @@ export function generateDashboardPDF(
     margin: { left: margin, right: margin }
   });
   
-  currentY = (pdf as any).lastAutoTable.finalY + 15;
+  currentY = (trendResult.lastAutoTable || trendResult).finalY + 15;
   
   // ----- 3. Top Risks -----
   pdf.addPage();
@@ -199,7 +199,7 @@ export function generateDashboardPDF(
     risk.status
   ]);
   
-  autoTable(pdf, {
+  const topRisksResult = autoTable(pdf, {
     startY: currentY,
     head: [["Reference", "Title", "Category", "Severity", "Status"]],
     body: topRisksData,
@@ -213,7 +213,7 @@ export function generateDashboardPDF(
     }
   });
   
-  currentY = (pdf as any).lastAutoTable.finalY + 15;
+  currentY = (topRisksResult.lastAutoTable || topRisksResult).finalY + 15;
   
   // ----- 4. AI Insights -----
   pdf.setFontSize(18);
@@ -233,7 +233,7 @@ export function generateDashboardPDF(
     insight.description.substring(0, 100) + (insight.description.length > 100 ? "..." : "")
   ]);
   
-  autoTable(pdf, {
+  const insightResult = autoTable(pdf, {
     startY: currentY,
     head: [["Insight", "Type", "Description"]],
     body: insightData,
@@ -470,7 +470,7 @@ function addHeatmapTable(pdf: jsPDF, heatmapData: { impact: number; probability:
     }
   }
   
-  autoTable(pdf, {
+  const result = autoTable(pdf, {
     startY: startY,
     head: [["", "Very Low", "Low", "Medium", "High", "Very High"]],
     body: [
@@ -513,4 +513,6 @@ function addHeatmapTable(pdf: jsPDF, heatmapData: { impact: number; probability:
       }
     }
   });
+  
+  return result;
 }

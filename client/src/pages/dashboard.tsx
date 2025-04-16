@@ -88,7 +88,7 @@ export default function Dashboard() {
       });
       
       // Generate and download the PDF
-      const pdf = generateDashboardPDF(dashboardData, chartImages);
+      const pdf = generateDashboardPDF(dashboardData as RiskSummary, chartImages);
       pdf.save('RiskManagement-Dashboard-Report.pdf');
       
       toast({
