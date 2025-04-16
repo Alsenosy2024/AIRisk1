@@ -2,6 +2,7 @@ import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { generateRiskSuggestions, generateMitigationPlan, generateRiskInsights } from "./openai";
+import { analyzeRiskData } from "./services/ai-insights-service";
 import { z } from "zod";
 import { RISK_CATEGORIES, insertRiskSchema, insertRiskEventSchema, insertInsightSchema } from "@shared/schema";
 import { randomBytes } from "crypto";
@@ -400,6 +401,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
       
       res.status(200).json(savedInsights);
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error", error: error.message });
+    }
+  });
+  
+  // AI Dashboard Insights route
+  app.get("/api/ai/dashboard-insights", userMiddleware, async (_, res) => {
+    try {
+      const risks = await storage.getAllRisks();
+      const riskEvents = await Promise.all(
+        risks.map(risk => storage.getRiskEvents(risk.id))
+      ).then(events => events.flat());
+      const projects = await storage.getAllProjects();
+      
+      const insights = await analyzeRiskData(risks, riskEvents, projects);
+      res.status(200).json(insights);
     } catch (error) {
       res.status(500).json({ message: "Internal server error", error: error.message });
     }
