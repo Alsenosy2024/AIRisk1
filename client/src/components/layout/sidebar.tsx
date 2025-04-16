@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLocation } from "wouter";
+import { useLocation, useRoute, Link } from "wouter";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/auth-context";
 import { 
@@ -116,10 +116,11 @@ interface NavItemProps {
 }
 
 function NavItem({ href, icon, label, isActive }: NavItemProps) {
-  // Use onClick with window.location instead of nested <a> tags to avoid DOM nesting errors
-  const handleClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    window.location.href = href;
+  // Use Link from wouter instead of window.location for client-side routing
+  const [_, navigate] = useLocation();
+
+  const handleClick = () => {
+    navigate(href);
   };
 
   return (
