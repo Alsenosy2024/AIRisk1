@@ -3,7 +3,12 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { generateRiskSuggestions, generateMitigationPlan, generateRiskInsights } from "./openai";
 import { analyzeRiskData } from "./services/ai-insights-service";
-import { sendPasswordResetEmail, verifyResetToken, sendConfirmationEmail } from "./services/email-service";
+import { 
+  sendPasswordResetEmail, 
+  verifyResetToken, 
+  clearResetToken,
+  sendConfirmationEmail 
+} from "./services/email-service";
 import { z } from "zod";
 import { RISK_CATEGORIES, insertRiskSchema, insertRiskEventSchema, insertInsightSchema } from "@shared/schema";
 import { setupAuth } from "./auth";
@@ -493,7 +498,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Clear the used token
-      // clearResetToken(token);
+      clearResetToken(token);
       
       res.status(200).json({ message: "Password reset successfully" });
     } catch (error) {
