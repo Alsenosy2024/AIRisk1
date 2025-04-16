@@ -10,7 +10,8 @@ import {
   FileText, 
   Settings, 
   LogOut,
-  ChevronRight
+  ChevronRight,
+  Lightbulb
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -56,6 +57,12 @@ export function Sidebar() {
             icon={<Bot className="mr-3 h-5 w-5" />}
             label="AI Generator"
             isActive={location === "/ai-generator"}
+          />
+          <NavItem
+            href="/intelligence"
+            icon={<Lightbulb className="mr-3 h-5 w-5" />}
+            label="Risk Intelligence"
+            isActive={location === "/intelligence"}
           />
           <NavItem
             href="/reports"

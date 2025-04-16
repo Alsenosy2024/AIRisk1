@@ -1,10 +1,25 @@
 import { useState } from "react";
-import { AlertCircle, TrendingUp, Calendar, ChevronRight, RefreshCw, AlertTriangle, Clock } from "lucide-react";
+import { 
+  Lightbulb, 
+  RefreshCw, 
+  AlertTriangle, 
+  TrendingUp, 
+  Clock, 
+  Info,
+  ArrowUpRight,
+  Check,
+  X,
+  ChevronRight,
+  ListChecks,
+  ShieldAlert,
+  FileCheck,
+  UserCog,
+  ArrowUpCircle
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
 interface KeyInsight {
@@ -37,221 +52,248 @@ export function AIDashboardInsights({
   actionItems = [],
   onRefresh
 }: AIDashboardInsightsProps) {
-  const [activeTab, setActiveTab] = useState("insights");
+  const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   
-  const handleRefresh = () => {
-    if (onRefresh) {
-      onRefresh();
+  // Handle the refresh button click
+  const handleRefresh = async () => {
+    if (loading) return;
+    
+    setLoading(true);
+    
+    try {
+      if (onRefresh) {
+        await onRefresh();
+      }
+      
       toast({
-        title: "Refreshing insights",
-        description: "Analyzing risk data to generate fresh insights...",
+        title: "Insights refreshed",
+        description: "The latest AI analysis has been generated successfully.",
       });
+    } catch (error) {
+      toast({
+        title: "Error refreshing insights",
+        description: "An error occurred while generating insights. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
     }
   };
-
-  // Helper function to get icon based on insight type
-  const getInsightIcon = (type: KeyInsight["type"]) => {
+  
+  // Render icon based on insight type
+  function getInsightIcon(type: KeyInsight["type"]) {
     switch (type) {
       case "trend":
-        return <TrendingUp className="h-5 w-5 text-blue-500" />;
+        return <TrendingUp className="h-6 w-6" />;
       case "warning":
-        return <AlertCircle className="h-5 w-5 text-orange-500" />;
+        return <AlertTriangle className="h-6 w-6" />;
       case "deadline":
-        return <Calendar className="h-5 w-5 text-purple-500" />;
+        return <Clock className="h-6 w-6" />;
       case "info":
+        return <Info className="h-6 w-6" />;
       default:
-        return <AlertTriangle className="h-5 w-5 text-blue-500" />;
+        return <Info className="h-6 w-6" />;
     }
-  };
-
-  // Helper function to get icon based on action type
-  const getActionIcon = (type: ActionItem["type"]) => {
-    switch (type) {
-      case "overdue":
-        return <Clock className="h-5 w-5 text-red-500" />;
-      case "approval":
-        return <svg className="h-5 w-5 text-green-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M20 6L9 17l-5-5"/>
-        </svg>;
-      case "mitigation":
-        return <svg className="h-5 w-5 text-purple-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-        </svg>;
-      case "review":
-        return <svg className="h-5 w-5 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
-          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
-        </svg>;
-      case "assignment":
-        return <svg className="h-5 w-5 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-          <circle cx="9" cy="7" r="4"/>
-          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-        </svg>;
-      case "escalation":
-        return <svg className="h-5 w-5 text-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M13 17l5-5-5-5"/>
-          <path d="M6 17l5-5-5-5"/>
-        </svg>;
+  }
+  
+  // Get severity color
+  function getSeverityColor(severity: KeyInsight["severity"]) {
+    switch (severity) {
+      case "critical":
+        return "text-red-500 bg-red-50 border-red-200";
+      case "high":
+        return "text-orange-500 bg-orange-50 border-orange-200";
+      case "medium":
+        return "text-amber-500 bg-amber-50 border-amber-200";
+      case "low":
+        return "text-blue-500 bg-blue-50 border-blue-200";
       default:
-        return <AlertTriangle className="h-5 w-5 text-amber-500" />;
+        return "text-gray-500 bg-gray-50 border-gray-200";
     }
-  };
-
-  // Helper function to get badge color based on priority/severity
-  const getBadgeClass = (priority: string) => {
+  }
+  
+  // Get priority color for action items
+  function getPriorityColor(priority: ActionItem["priority"]) {
     switch (priority) {
       case "critical":
-        return "bg-red-100 text-red-800 border-red-200";
+        return "text-red-700 bg-red-50 border-red-200";
       case "high":
-        return "bg-orange-100 text-orange-800 border-orange-200";
+        return "text-orange-700 bg-orange-50 border-orange-200";
       case "important":
+        return "text-amber-700 bg-amber-50 border-amber-200";
       case "medium":
-        return "bg-amber-100 text-amber-800 border-amber-200";
+        return "text-blue-700 bg-blue-50 border-blue-200";
       case "low":
-        return "bg-green-100 text-green-600 border-green-200";
+        return "text-gray-700 bg-gray-50 border-gray-200";
       default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
+        return "text-gray-700 bg-gray-50 border-gray-200";
     }
-  };
-
-  // Loading skeleton UI
-  if (isLoading) {
-    return (
-      <div className="space-y-4">
-        <div className="flex justify-between items-center">
-          <Skeleton className="h-8 w-60" />
-          <Skeleton className="h-9 w-24" />
-        </div>
-        <Card>
-          <CardContent className="p-6">
-            <div className="space-y-4">
-              <Skeleton className="h-8 w-40" />
-              <div className="space-y-2">
-                {[1, 2, 3].map(i => (
-                  <div key={i} className="flex gap-4 items-start">
-                    <Skeleton className="h-5 w-5 rounded-full" />
-                    <div className="space-y-2 flex-1">
-                      <Skeleton className="h-5 w-full" />
-                      <Skeleton className="h-4 w-3/4" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
+  }
+  
+  // Get action item icon based on type
+  function getActionIcon(type: ActionItem["type"]) {
+    switch (type) {
+      case "overdue":
+        return <Clock className="h-5 w-5" />;
+      case "approval":
+        return <Check className="h-5 w-5" />;
+      case "mitigation":
+        return <ShieldAlert className="h-5 w-5" />;
+      case "review":
+        return <FileCheck className="h-5 w-5" />;
+      case "assignment":
+        return <UserCog className="h-5 w-5" />;
+      case "escalation":
+        return <ArrowUpCircle className="h-5 w-5" />;
+      default:
+        return <ListChecks className="h-5 w-5" />;
+    }
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sm:gap-0">
-        <div>
-          <h2 className="text-2xl font-semibold tracking-tight text-gray-800">Risk Intelligence Dashboard</h2>
-          <p className="text-gray-500 text-sm">AI-powered insights from your risk register</p>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-full bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center shadow-md">
+            <Lightbulb className="h-5 w-5 text-white" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-semibold">AI Risk Intelligence</h1>
+            <p className="text-gray-500 text-sm">AI-powered insights and recommended actions</p>
+          </div>
         </div>
-        <Button onClick={handleRefresh} variant="outline" className="gap-1 glass-card">
-          <RefreshCw className="h-3.5 w-3.5 mr-1" />
-          Refresh Insights
+        
+        <Button 
+          variant="outline" 
+          className="flex items-center gap-2"
+          onClick={handleRefresh}
+          disabled={loading}
+        >
+          <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
+          <span>Refresh Insights</span>
         </Button>
       </div>
-
-      <Card className="bg-white/80 backdrop-blur-md rounded-2xl border border-gray-100/50 shadow-sm overflow-hidden">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <div className="px-6 pt-6">
-            <TabsList className="grid w-full max-w-md grid-cols-2 bg-gray-100/50 backdrop-blur-sm">
-              <TabsTrigger value="insights" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">
+      
+      {/* Main content */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Key Insights Section */}
+        <div className="md:col-span-2 space-y-6">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <ArrowUpRight className="h-5 w-5 text-blue-500" />
                 Key Insights
-              </TabsTrigger>
-              <TabsTrigger value="actions" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">
-                Required Actions
-              </TabsTrigger>
-            </TabsList>
-          </div>
-
-          <TabsContent value="insights" className="p-6 pt-4">
-            {keyInsights.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-8 text-center">
-                <div className="bg-blue-50 p-3 rounded-full mb-3">
-                  <AlertCircle className="h-6 w-6 text-blue-500" />
-                </div>
-                <h3 className="font-medium text-gray-900 mb-1">No key insights available</h3>
-                <p className="text-gray-500 max-w-md">Analyze more risk data or refresh insights to generate AI-powered observations.</p>
-              </div>
-            ) : (
+              </CardTitle>
+              <CardDescription>
+                Important patterns and findings detected in your risk data
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
               <div className="space-y-4">
-                {keyInsights.map((insight) => (
-                  <div key={insight.id} className="flex gap-4 items-start p-4 rounded-xl bg-gray-50/70 backdrop-blur-sm border border-gray-100/50 hover:bg-gray-50/90 transition-colors cursor-pointer group">
-                    <div className="p-2 rounded-lg bg-white shadow-sm">
-                      {getInsightIcon(insight.type)}
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex justify-between items-start">
-                        <h3 className="text-base font-semibold text-gray-800">{insight.title}</h3>
-                        <Badge className={`ml-2 ${getBadgeClass(insight.severity)}`}>
-                          {insight.severity.charAt(0).toUpperCase() + insight.severity.slice(1)}
-                        </Badge>
-                      </div>
-                      <p className="text-gray-600 text-sm mt-1">{insight.description}</p>
-                    </div>
-                    <ChevronRight className="h-5 w-5 text-gray-400 self-center opacity-0 group-hover:opacity-100 transition-opacity" />
+                {keyInsights.length === 0 ? (
+                  <div className="text-center py-6 text-gray-500">
+                    <Info className="h-10 w-10 mx-auto mb-2 opacity-50" />
+                    <p>No insights available. Click refresh to generate new insights.</p>
                   </div>
-                ))}
-              </div>
-            )}
-          </TabsContent>
-
-          <TabsContent value="actions" className="p-6 pt-4">
-            {actionItems.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-8 text-center">
-                <div className="bg-green-50 p-3 rounded-full mb-3">
-                  <svg className="h-6 w-6 text-green-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M20 6L9 17l-5-5"/>
-                  </svg>
-                </div>
-                <h3 className="font-medium text-gray-900 mb-1">No actions required</h3>
-                <p className="text-gray-500 max-w-md">All risk items are up to date. Check back later for new recommended actions.</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {actionItems.map((action) => (
-                  <div key={action.id} className="flex gap-4 items-start p-4 rounded-xl bg-gray-50/70 backdrop-blur-sm border border-gray-100/50 hover:bg-gray-50/90 transition-colors cursor-pointer group">
-                    <div className="p-2 rounded-lg bg-white shadow-sm">
-                      {getActionIcon(action.type)}
+                ) : (
+                  keyInsights.map((insight) => (
+                    <div 
+                      key={insight.id} 
+                      className="border rounded-lg p-4 hover:shadow-md transition-shadow"
+                    >
+                      <div className="flex items-start gap-4">
+                        <div className={cn("p-2 rounded-full", getSeverityColor(insight.severity))}>
+                          {getInsightIcon(insight.type)}
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-1">
+                            <h3 className="font-medium">{insight.title}</h3>
+                            <Badge className={cn("w-fit", getSeverityColor(insight.severity))}>
+                              {insight.severity.charAt(0).toUpperCase() + insight.severity.slice(1)}
+                            </Badge>
+                          </div>
+                          <p className="text-gray-600 text-sm">{insight.description}</p>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex-1">
-                      <div className="flex justify-between items-start">
-                        <h3 className="text-base font-semibold text-gray-800">{action.title}</h3>
-                        <Badge className={`ml-2 ${getBadgeClass(action.priority)}`}>
+                  ))
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+        
+        {/* Action Items Section */}
+        <div className="md:col-span-1">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <ListChecks className="h-5 w-5 text-purple-500" />
+                Required Actions
+              </CardTitle>
+              <CardDescription>
+                Recommended tasks to address risks
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {actionItems.length === 0 ? (
+                  <div className="text-center py-6 text-gray-500">
+                    <ListChecks className="h-10 w-10 mx-auto mb-2 opacity-50" />
+                    <p>No action items available</p>
+                  </div>
+                ) : (
+                  actionItems.map((action) => (
+                    <div 
+                      key={action.id}
+                      className={cn(
+                        "border rounded-lg p-3 hover:shadow-sm transition-shadow cursor-pointer group",
+                        {
+                          "border-l-4": action.priority === "critical" || action.priority === "high"
+                        },
+                        action.priority === "critical" && "border-l-red-500",
+                        action.priority === "high" && "border-l-orange-500"
+                      )}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <Badge className={cn("w-fit", getPriorityColor(action.priority))}>
                           {action.priority.charAt(0).toUpperCase() + action.priority.slice(1)}
                         </Badge>
+                        <span className="text-xs text-gray-500 flex items-center">
+                          {action.type.charAt(0).toUpperCase() + action.type.slice(1)}
+                          <ChevronRight className="h-3 w-3 ml-1 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </span>
                       </div>
-                      <p className="text-gray-600 text-sm mt-1">{action.description}</p>
-                      {action.relatedRiskIds && action.relatedRiskIds.length > 0 && (
-                        <div className="mt-2">
-                          <span className="text-xs text-gray-500">Related risks: </span>
-                          {action.relatedRiskIds.map((id, index) => (
-                            <span key={id} className="text-xs text-blue-600 font-medium">
-                              #{id}{index < action.relatedRiskIds!.length - 1 ? ', ' : ''}
-                            </span>
-                          ))}
+                      <div className="flex gap-3">
+                        <div className={cn("mt-1", getPriorityColor(action.priority))}>
+                          {getActionIcon(action.type)}
                         </div>
-                      )}
+                        <div>
+                          <h4 className="font-medium text-sm">{action.title}</h4>
+                          <p className="text-gray-600 text-xs mt-1">{action.description}</p>
+                        </div>
+                      </div>
                     </div>
-                    <Button size="sm" variant="ghost" className="ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <ChevronRight className="h-5 w-5" />
-                    </Button>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
-            )}
-          </TabsContent>
-        </Tabs>
-      </Card>
+              
+              {actionItems.length > 0 && (
+                <div className="mt-4 text-center">
+                  <Button 
+                    variant="link" 
+                    className="text-sm text-gray-500 hover:text-gray-900"
+                  >
+                    View All Actions
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 }

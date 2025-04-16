@@ -64,6 +64,7 @@ export const risks = pgTable("risks", {
   severity: text("severity", { enum: RISK_SEVERITY }).notNull(),
   status: text("status", { enum: RISK_STATUS }).notNull().default("Identified"),
   mitigation_plan: text("mitigation_plan"),
+  target_date: timestamp("target_date"), // Target date for mitigation
   owner_id: integer("owner_id").references(() => users.id),
   project_id: integer("project_id").references(() => projects.id),
   created_at: timestamp("created_at").defaultNow().notNull(),

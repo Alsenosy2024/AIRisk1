@@ -10,6 +10,7 @@ import AIGenerator from "@/pages/ai-generator";
 import Reports from "@/pages/reports";
 import Settings from "@/pages/settings";
 import AuthPage from "@/pages/auth-page";
+import RiskIntelligence from "@/pages/risk-intelligence";
 import { ThemeProvider } from "@/components/theme-provider";
 
 function Router() {
@@ -18,6 +19,7 @@ function Router() {
       <Route path="/" component={Dashboard} />
       <Route path="/risks" component={RiskRegister} />
       <Route path="/ai-generator" component={AIGenerator} />
+      <Route path="/intelligence" component={RiskIntelligence} />
       <Route path="/reports" component={Reports} />
       <Route path="/settings" component={Settings} />
       <Route path="/auth" component={AuthPage} />
