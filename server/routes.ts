@@ -1,4 +1,4 @@
-import type { Express, Request, Response } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { generateRiskSuggestions, generateMitigationPlan, generateRiskInsights } from "./openai";
@@ -6,6 +6,7 @@ import { analyzeRiskData } from "./services/ai-insights-service";
 import { z } from "zod";
 import { RISK_CATEGORIES, insertRiskSchema, insertRiskEventSchema, insertInsightSchema } from "@shared/schema";
 import { randomBytes } from "crypto";
+import { verifyFirebaseToken, findOrCreateUser } from "./firebase-auth";
 
 // Simple auth middleware - in a real app use proper auth
 function userMiddleware(req: Request, res: Response, next: Function) {
@@ -50,7 +51,168 @@ function roleMiddleware(allowedRoles: string[]) {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Auth routes
+  // Firebase Auth routes
+  app.post("/api/auth/verify-token", async (req, res) => {
+    try {
+      const { idToken } = req.body;
+      
+      if (!idToken) {
+        return res.status(400).json({ message: "ID token is required" });
+      }
+      
+      // Verify the Firebase token
+      try {
+        // Add token to request headers for middleware to verify
+        req.headers.authorization = `Bearer ${idToken}`;
+        await verifyFirebaseToken(req, res, async () => {
+          if (!req.firebaseUser) {
+            return res.status(401).json({ message: "Invalid token" });
+          }
+          
+          // Get or create user in our database
+          const user = await findOrCreateUser(
+            req.firebaseUser.uid,
+            req.firebaseUser.email || '',
+            req.firebaseUser.name || req.firebaseUser.email?.split('@')[0] || 'User'
+          );
+          
+          // Set user in session
+          if (req.session) {
+            req.session.userId = user.id;
+          }
+          
+          // Return user info
+          const { password: _, ...userWithoutPassword } = user;
+          res.status(200).json(userWithoutPassword);
+        });
+      } catch (error) {
+        console.error("Token verification error:", error);
+        return res.status(401).json({ message: "Invalid token" });
+      }
+    } catch (error) {
+      console.error("Error in verify-token:", error);
+      res.status(500).json({ message: "Internal server error", error: error.message });
+    }
+  });
+  
+  app.post("/api/auth/google-auth", async (req, res) => {
+    try {
+      const { idToken, name, email } = req.body;
+      
+      if (!idToken) {
+        return res.status(400).json({ message: "ID token is required" });
+      }
+      
+      // Verify the Firebase token
+      try {
+        // Add token to request headers for middleware to verify
+        req.headers.authorization = `Bearer ${idToken}`;
+        await verifyFirebaseToken(req, res, async () => {
+          if (!req.firebaseUser) {
+            return res.status(401).json({ message: "Invalid token" });
+          }
+          
+          // Get or create user in our database
+          const user = await findOrCreateUser(
+            req.firebaseUser.uid,
+            email || req.firebaseUser.email || '',
+            name || req.firebaseUser.name || 'User'
+          );
+          
+          // Set user in session
+          if (req.session) {
+            req.session.userId = user.id;
+          }
+          
+          // Return user info
+          const { password: _, ...userWithoutPassword } = user;
+          res.status(200).json(userWithoutPassword);
+        });
+      } catch (error) {
+        console.error("Google auth error:", error);
+        return res.status(401).json({ message: "Google authentication failed" });
+      }
+    } catch (error) {
+      console.error("Error in google-auth:", error);
+      res.status(500).json({ message: "Internal server error", error: error.message });
+    }
+  });
+  
+  app.post("/api/auth/register", async (req, res) => {
+    try {
+      const { idToken, name, email } = req.body;
+      
+      if (!idToken) {
+        return res.status(400).json({ message: "ID token is required" });
+      }
+      
+      // Verify Firebase token
+      try {
+        // Add token to request headers for middleware to verify
+        req.headers.authorization = `Bearer ${idToken}`;
+        await verifyFirebaseToken(req, res, async () => {
+          if (!req.firebaseUser) {
+            return res.status(401).json({ message: "Invalid token" });
+          }
+          
+          // Check if user already exists
+          let user = await storage.getUserByFirebaseUid(req.firebaseUser.uid);
+          
+          if (user) {
+            // User already exists
+            return res.status(409).json({ message: "User already exists" });
+          }
+          
+          // Create new user
+          user = await storage.createUser({
+            username: email.split('@')[0] + '_' + Math.floor(Math.random() * 10000),
+            name: name || 'User',
+            email: email,
+            password: '', // No password for Firebase users
+            firebase_uid: req.firebaseUser.uid,
+            role: 'Viewer' // Default role
+          });
+          
+          // Set user in session
+          if (req.session) {
+            req.session.userId = user.id;
+          }
+          
+          // Return user info
+          const { password: _, ...userWithoutPassword } = user;
+          res.status(201).json(userWithoutPassword);
+        });
+      } catch (error) {
+        console.error("Registration error:", error);
+        return res.status(401).json({ message: "Registration failed" });
+      }
+    } catch (error) {
+      console.error("Error in registration:", error);
+      res.status(500).json({ message: "Internal server error", error: error.message });
+    }
+  });
+  
+  app.post("/api/auth/logout", (req, res) => {
+    try {
+      // Clear session
+      if (req.session) {
+        req.session.destroy(err => {
+          if (err) {
+            console.error("Error destroying session:", err);
+            return res.status(500).json({ message: "Failed to destroy session" });
+          }
+          res.status(200).json({ message: "Logged out successfully" });
+        });
+      } else {
+        res.status(200).json({ message: "Logged out successfully" });
+      }
+    } catch (error) {
+      console.error("Error in logout:", error);
+      res.status(500).json({ message: "Internal server error", error: error.message });
+    }
+  });
+  
+  // Legacy Auth route
   app.post("/api/login", async (req, res) => {
     try {
       const { username, password } = req.body;

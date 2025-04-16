@@ -1,8 +1,8 @@
-import { createContext, ReactNode, useContext, useState, useEffect } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
+import { createContext, useState, useEffect, useContext, ReactNode } from 'react';
+import { apiRequest, queryClient } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
 
+// Type for our auth user
 type User = {
   id: number;
   username: string;
@@ -16,97 +16,191 @@ type LoginCredentials = {
   password: string;
 };
 
+type RegisterCredentials = {
+  username: string;
+  password: string;
+  name: string;
+  email: string;
+};
+
+// Auth context type
 type AuthContextType = {
   user: User | null;
-  login: (credentials: LoginCredentials) => Promise<void>;
-  logout: () => void;
   isLoading: boolean;
   isAdmin: boolean;
   isRiskManager: boolean;
   isProjectManager: boolean;
   hasEditPermission: boolean;
   hasDeletePermission: boolean;
+  login: (credentials: LoginCredentials) => Promise<void>;
+  register: (credentials: RegisterCredentials) => Promise<void>;
+  logout: () => Promise<void>;
 };
 
-const AuthContext = createContext<AuthContextType | null>(null);
+// Create the auth context
+export const AuthContext = createContext<AuthContextType | null>(null);
 
+// Provider component
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
-  // For the demo, we'll auto-login a user on page load
-  // In a real app, you would check for an existing session
+  // Check if user is already logged in
   useEffect(() => {
-    // Auto-login for the demo
-    if (!user) {
-      login({ username: "riskmgr", password: "risk123" }).catch(() => {
-        toast({
-          title: "Demo Login",
-          description: "Using default user account for demonstration",
-        });
-      });
-    }
+    const fetchUser = async () => {
+      try {
+        const response = await apiRequest('GET', '/api/user');
+        
+        if (response.ok) {
+          const userData = await response.json();
+          setUser(userData);
+        } else {
+          setUser(null);
+        }
+      } catch (error) {
+        console.error('Error fetching user:', error);
+        setUser(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchUser();
   }, []);
 
+  // Login function
   const login = async (credentials: LoginCredentials) => {
+    setIsLoading(true);
+    
     try {
-      const response = await apiRequest("POST", "/api/login", credentials);
+      const response = await apiRequest('POST', '/api/login', credentials);
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Invalid credentials');
+      }
+      
       const userData = await response.json();
       setUser(userData);
+      
       toast({
-        title: "Logged in successfully",
+        title: 'Login successful',
+        description: `Welcome back, ${userData.name}`,
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to login';
+      
+      toast({
+        title: 'Login failed',
+        description: message,
+        variant: 'destructive',
+      });
+      
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Register function
+  const register = async (credentials: RegisterCredentials) => {
+    setIsLoading(true);
+    
+    try {
+      const response = await apiRequest('POST', '/api/register', credentials);
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Registration failed');
+      }
+      
+      const userData = await response.json();
+      setUser(userData);
+      
+      toast({
+        title: 'Registration successful',
         description: `Welcome, ${userData.name}`,
       });
     } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to register';
+      
       toast({
-        variant: "destructive",
-        title: "Login failed",
-        description: error.message || "Please check your credentials",
+        title: 'Registration failed',
+        description: message,
+        variant: 'destructive',
       });
+      
       throw error;
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    toast({
-      title: "Logged out",
-      description: "You have been logged out successfully",
-    });
+  // Logout function
+  const logout = async () => {
+    setIsLoading(true);
+    
+    try {
+      await apiRequest('POST', '/api/logout');
+      
+      setUser(null);
+      queryClient.clear();
+      
+      toast({
+        title: 'Logged out',
+        description: 'You have been logged out successfully',
+      });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to logout';
+      
+      toast({
+        title: 'Logout failed',
+        description: message,
+        variant: 'destructive',
+      });
+      
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  // Compute permission flags based on user role
-  const isAdmin = user?.role === "Admin";
-  const isRiskManager = user?.role === "Risk Manager" || isAdmin;
-  const isProjectManager = user?.role === "Project Manager" || isRiskManager;
+  // Derive role-based permissions
+  const isAdmin = Boolean(user && user.role === 'Admin');
+  const isRiskManager = Boolean(user && (user.role === 'Admin' || user.role === 'Risk Manager'));
+  const isProjectManager = Boolean(user && (user.role === 'Admin' || user.role === 'Risk Manager' || user.role === 'Project Manager'));
   const hasEditPermission = isProjectManager;
   const hasDeletePermission = isRiskManager;
-  
-  const isLoading = false; // For demo, we're not actually loading, but you would check query status in a real app
+
+  // Create context value
+  const value: AuthContextType = {
+    user,
+    isLoading,
+    isAdmin,
+    isRiskManager,
+    isProjectManager,
+    hasEditPermission,
+    hasDeletePermission,
+    login,
+    register,
+    logout,
+  };
 
   return (
-    <AuthContext.Provider 
-      value={{ 
-        user, 
-        login, 
-        logout, 
-        isLoading,
-        isAdmin,
-        isRiskManager,
-        isProjectManager,
-        hasEditPermission,
-        hasDeletePermission
-      }}
-    >
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
 }
 
+// Custom hook to use the auth context
 export function useAuth() {
   const context = useContext(AuthContext);
+  
   if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
+    throw new Error('useAuth must be used within an AuthProvider');
   }
+  
   return context;
 }

@@ -42,7 +42,10 @@ export interface IStorage {
   // User operations
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
+  getUserByFirebaseUid(firebaseUid: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUserFirebaseUid(userId: number, firebaseUid: string): Promise<User>;
   
   // Project operations
   getProject(id: number): Promise<Project | undefined>;
@@ -124,19 +127,49 @@ export class MemStorage implements IStorage {
     );
   }
   
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(
+      (user) => user.email.toLowerCase() === email.toLowerCase()
+    );
+  }
+  
+  async getUserByFirebaseUid(firebaseUid: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(
+      (user) => user.firebase_uid === firebaseUid
+    );
+  }
+  
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.userIdCounter++;
-    const hashedPassword = await hashPassword(insertUser.password);
+    // Only hash password if provided (firebase auth won't have a password)
+    const password = insertUser.password 
+      ? await hashPassword(insertUser.password)
+      : '';
     
     const user: User = {
       ...insertUser,
       id,
-      password: hashedPassword,
+      password,
       created_at: new Date()
     };
     
     this.users.set(id, user);
     return { ...user, password: "[REDACTED]" } as User;
+  }
+  
+  async updateUserFirebaseUid(userId: number, firebaseUid: string): Promise<User> {
+    const user = this.users.get(userId);
+    if (!user) {
+      throw new Error(`User with ID ${userId} not found`);
+    }
+    
+    const updatedUser = {
+      ...user,
+      firebase_uid: firebaseUid
+    };
+    
+    this.users.set(userId, updatedUser);
+    return { ...updatedUser, password: "[REDACTED]" } as User;
   }
   
   // Project operations

@@ -4,14 +4,15 @@ import { storage } from './storage';
 import { InsertUser } from '@shared/schema';
 
 // Initialize Firebase Admin SDK
-if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert({
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-    } as admin.ServiceAccount),
-  });
+try {
+  if (!admin.apps.length) {
+    // For development environment, initialize with a minimal configuration
+    admin.initializeApp({
+      projectId: process.env.VITE_FIREBASE_PROJECT_ID || 'demo-risk-management',
+    });
+  }
+} catch (error) {
+  console.error("Firebase Admin initialization error:", error);
 }
 
 // Type definitions

@@ -1,188 +1,261 @@
-import { createContext, ReactNode, useContext, useEffect, useState } from "react";
-import { User, onAuthStateChanged } from "firebase/auth";
-import { auth, signInWithGoogle, signInWithEmail, signUpWithEmail, signOutUser } from "@/lib/firebase";
-import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { createContext, useState, useEffect, useContext, ReactNode } from 'react';
+import { 
+  onAuthStateChanged, 
+  signOut, 
+  createUserWithEmailAndPassword, 
+  signInWithEmailAndPassword,
+  GoogleAuthProvider,
+  signInWithPopup,
+  User as FirebaseUser
+} from 'firebase/auth';
+import { apiRequest } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
+import { auth } from '@/lib/firebase';
 
-// Type definitions
+// Type for our auth user (from our database, not Firebase)
+type User = {
+  id: number;
+  username: string;
+  name: string;
+  email: string;
+  role: "Admin" | "Risk Manager" | "Project Manager" | "Viewer";
+  firebase_uid: string;
+};
+
+// Auth context type
 type AuthContextType = {
   user: User | null;
   loading: boolean;
+  error: Error | null;
   signUp: (email: string, password: string, name: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signInWithGoogleAuth: () => Promise<void>;
   logout: () => Promise<void>;
 };
 
-type FirebaseAuthProviderProps = {
-  children: ReactNode;
-};
+// Create the auth context
+export const FirebaseAuthContext = createContext<AuthContextType | null>(null);
 
-// Create the Auth Context
-const FirebaseAuthContext = createContext<AuthContextType | null>(null);
-
-// Auth Provider component
-export function FirebaseAuthProvider({ children }: FirebaseAuthProviderProps) {
+// Provider component
+export function FirebaseAuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+  const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
   const { toast } = useToast();
 
-  // Sync user with Firebase Auth
+  // Handle user authentication state changes
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      setUser(firebaseUser);
+    const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
+      setFirebaseUser(fbUser);
       
-      if (firebaseUser) {
-        // User is signed in, sync with backend
+      if (fbUser) {
         try {
           // Get the ID token
-          const idToken = await firebaseUser.getIdToken();
+          const idToken = await fbUser.getIdToken();
           
-          // Send to backend for session verification/creation
-          await apiRequest("POST", "/api/auth/verify-token", { idToken });
-        } catch (error) {
-          console.error("Error syncing user with backend:", error);
+          // Verify with our backend and get user data
+          const res = await apiRequest('POST', '/api/auth/verify-token', { idToken });
+          
+          if (!res.ok) {
+            const errorData = await res.json();
+            throw new Error(errorData.message || 'Failed to verify user');
+          }
+          
+          const userData = await res.json();
+          setUser(userData);
+        } catch (err) {
+          console.error('Error setting user:', err);
+          setError(err instanceof Error ? err : new Error('An unknown error occurred'));
+          setUser(null);
+          
+          toast({
+            title: 'Authentication Error',
+            description: err instanceof Error ? err.message : 'Failed to authenticate user',
+            variant: 'destructive',
+          });
         }
+      } else {
+        setUser(null);
       }
       
       setLoading(false);
     });
-
+    
+    // Cleanup subscription on unmount
     return () => unsubscribe();
-  }, []);
+  }, [toast]);
 
-  // Sign up function
+  // Sign up with email/password
   const signUp = async (email: string, password: string, name: string) => {
     try {
       setLoading(true);
-      const user = await signUpWithEmail(email, password, name);
+      setError(null);
+      
+      // Create user in Firebase
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       
       // Get the ID token
-      const idToken = await user.getIdToken();
+      const idToken = await userCredential.user.getIdToken();
       
-      // Register with backend
-      await apiRequest("POST", "/api/auth/register", { 
-        idToken,
-        name,
-        email 
+      // Register with our backend
+      const res = await apiRequest('POST', '/api/auth/register', { 
+        idToken, 
+        email, 
+        name 
       });
+      
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || 'Failed to register user');
+      }
+      
+      const userData = await res.json();
+      setUser(userData);
       
       toast({
-        title: "Account created",
-        description: "You have been signed up successfully!",
+        title: 'Account created',
+        description: 'Your account has been created successfully.',
       });
-    } catch (error: any) {
-      console.error("Sign up error:", error);
+    } catch (err) {
+      console.error('Signup error:', err);
+      setError(err instanceof Error ? err : new Error('An unknown error occurred'));
+      
       toast({
-        title: "Sign up failed",
-        description: error.message || "Failed to create account. Please try again.",
-        variant: "destructive",
+        title: 'Signup failed',
+        description: err instanceof Error ? err.message : 'Failed to create account',
+        variant: 'destructive',
       });
-      throw error;
+      
+      throw err;
     } finally {
       setLoading(false);
     }
   };
 
-  // Sign in function
+  // Sign in with email/password
   const signIn = async (email: string, password: string) => {
     try {
       setLoading(true);
-      const userCredential = await signInWithEmail(email, password);
+      setError(null);
       
-      // Get the ID token
-      const idToken = await userCredential.user.getIdToken();
+      // Sign in with Firebase
+      await signInWithEmailAndPassword(auth, email, password);
       
-      // Verify with backend
-      await apiRequest("POST", "/api/auth/verify-token", { idToken });
+      // Note: Actual user data will be set by the auth state observer
       
       toast({
-        title: "Welcome back!",
-        description: "You have been signed in successfully.",
+        title: 'Logged in',
+        description: 'You have been logged in successfully.',
       });
-    } catch (error: any) {
-      console.error("Sign in error:", error);
+    } catch (err) {
+      console.error('Login error:', err);
+      setError(err instanceof Error ? err : new Error('An unknown error occurred'));
+      
       toast({
-        title: "Sign in failed",
-        description: error.message || "Failed to sign in. Please check your credentials.",
-        variant: "destructive",
+        title: 'Login failed',
+        description: err instanceof Error ? err.message : 'Failed to log in',
+        variant: 'destructive',
       });
-      throw error;
+      
+      throw err;
     } finally {
       setLoading(false);
     }
   };
 
-  // Google sign in function
+  // Sign in with Google
   const signInWithGoogleAuth = async () => {
     try {
       setLoading(true);
-      const userCredential = await signInWithGoogle();
+      setError(null);
+      
+      const provider = new GoogleAuthProvider();
+      const userCredential = await signInWithPopup(auth, provider);
       
       // Get the ID token
       const idToken = await userCredential.user.getIdToken();
       
-      // Send to backend
-      await apiRequest("POST", "/api/auth/google-auth", { 
+      // Authenticate with our backend
+      const res = await apiRequest('POST', '/api/auth/google-auth', { 
         idToken,
-        name: userCredential.user.displayName || '',
-        email: userCredential.user.email || '' 
+        email: userCredential.user.email,
+        name: userCredential.user.displayName || userCredential.user.email?.split('@')[0] || 'User'
       });
       
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || 'Failed to authenticate with Google');
+      }
+      
+      const userData = await res.json();
+      setUser(userData);
+      
       toast({
-        title: "Google sign in successful",
-        description: "You have been signed in with Google.",
+        title: 'Logged in with Google',
+        description: 'You have been logged in successfully.',
       });
-    } catch (error: any) {
-      console.error("Google sign in error:", error);
+    } catch (err) {
+      console.error('Google auth error:', err);
+      setError(err instanceof Error ? err : new Error('An unknown error occurred'));
+      
       toast({
-        title: "Google sign in failed",
-        description: error.message || "Failed to sign in with Google.",
-        variant: "destructive",
+        title: 'Google login failed',
+        description: err instanceof Error ? err.message : 'Failed to log in with Google',
+        variant: 'destructive',
       });
-      throw error;
+      
+      throw err;
     } finally {
       setLoading(false);
     }
   };
 
-  // Logout function
+  // Log out
   const logout = async () => {
     try {
       setLoading(true);
-      await signOutUser();
       
-      // Notify backend
-      await apiRequest("POST", "/api/auth/logout", {});
+      // Sign out from Firebase
+      await signOut(auth);
+      
+      // Sign out from our backend
+      await apiRequest('POST', '/api/auth/logout');
+      
+      setUser(null);
       
       toast({
-        title: "Signed out",
-        description: "You have been signed out successfully.",
+        title: 'Logged out',
+        description: 'You have been logged out successfully.',
       });
-    } catch (error: any) {
-      console.error("Logout error:", error);
+    } catch (err) {
+      console.error('Logout error:', err);
+      setError(err instanceof Error ? err : new Error('An unknown error occurred'));
+      
       toast({
-        title: "Sign out failed",
-        description: error.message || "Failed to sign out.",
-        variant: "destructive",
+        title: 'Logout failed',
+        description: err instanceof Error ? err.message : 'Failed to log out',
+        variant: 'destructive',
       });
-      throw error;
+      
+      throw err;
     } finally {
       setLoading(false);
     }
   };
 
+  const value = {
+    user,
+    loading,
+    error,
+    signUp,
+    signIn,
+    signInWithGoogleAuth,
+    logout
+  };
+
   return (
-    <FirebaseAuthContext.Provider
-      value={{
-        user,
-        loading,
-        signUp,
-        signIn,
-        signInWithGoogleAuth,
-        logout,
-      }}
-    >
+    <FirebaseAuthContext.Provider value={value}>
       {children}
     </FirebaseAuthContext.Provider>
   );
@@ -191,8 +264,10 @@ export function FirebaseAuthProvider({ children }: FirebaseAuthProviderProps) {
 // Custom hook to use the auth context
 export function useFirebaseAuth() {
   const context = useContext(FirebaseAuthContext);
+  
   if (!context) {
-    throw new Error("useFirebaseAuth must be used within a FirebaseAuthProvider");
+    throw new Error('useFirebaseAuth must be used within a FirebaseAuthProvider');
   }
+  
   return context;
 }
