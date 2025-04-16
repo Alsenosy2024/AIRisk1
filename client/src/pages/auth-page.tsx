@@ -3,7 +3,7 @@ import { useLocation } from "wouter";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useAuth } from "@/contexts/auth-context";
+import { useAuth } from "@/hooks/use-auth";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -46,7 +46,12 @@ const registerSchema = z.object({
 export default function AuthPage() {
   const [activeTab, setActiveTab] = useState<"login" | "register">("login");
   const [, navigate] = useLocation();
-  const { user, isLoading, login, register } = useAuth();
+  const { 
+    user, 
+    isLoading, 
+    loginMutation, 
+    registerMutation 
+  } = useAuth();
 
   // Redirect if user is already logged in
   useEffect(() => {
@@ -78,7 +83,7 @@ export default function AuthPage() {
   // Handle login form submission
   const onLoginSubmit = async (values: z.infer<typeof loginSchema>) => {
     try {
-      await login(values);
+      await loginMutation.mutateAsync(values);
       navigate("/");
     } catch (error) {
       console.error("Login error:", error);
@@ -88,7 +93,7 @@ export default function AuthPage() {
   // Handle register form submission
   const onRegisterSubmit = async (values: z.infer<typeof registerSchema>) => {
     try {
-      await register(values);
+      await registerMutation.mutateAsync(values);
       navigate("/");
     } catch (error) {
       console.error("Registration error:", error);
