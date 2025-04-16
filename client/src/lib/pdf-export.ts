@@ -1,5 +1,5 @@
 import { jsPDF } from "jspdf";
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import { RiskSummary } from "@shared/schema";
 import { getColorBySeverity, getColorByCategory } from "@/lib/utils";
 import { HeatmapCell, getSeverity } from "@/lib/risk-utils";
@@ -63,7 +63,7 @@ export function generateDashboardPDF(
     ["Mitigation Progress", `${dashboardData.mitigationProgress}%`]
   ];
   
-  (pdf as any).autoTable({
+  const tableResult = autoTable(pdf, {
     startY: currentY,
     head: [["Metric", "Value"]],
     body: metricsData,
@@ -73,7 +73,7 @@ export function generateDashboardPDF(
     margin: { left: margin, right: margin }
   });
   
-  currentY = (pdf as any).lastAutoTable.finalY + 15;
+  currentY = (tableResult.lastAutoTable || tableResult).finalY + 15;
   
   // ----- 2. Risk Distribution -----
   pdf.setFontSize(18);
@@ -99,8 +99,8 @@ export function generateDashboardPDF(
     currentY += contentWidth * 0.7 + 10;
   } else {
     // Otherwise add a table representation of the heatmap
-    addHeatmapTable(pdf, dashboardData.heatmapData, currentY);
-    currentY = (pdf as any).lastAutoTable.finalY + 15;
+    const heatmapResult = addHeatmapTable(pdf, dashboardData.heatmapData, currentY);
+    currentY = (heatmapResult.lastAutoTable || heatmapResult).finalY + 15;
   }
   
   // Check if we need a new page for the next section
@@ -126,7 +126,7 @@ export function generateDashboardPDF(
     cat.category, cat.count.toString()
   ]);
   
-  (pdf as any).autoTable({
+  autoTable(pdf, {
     startY: currentY,
     head: [["Category", "Count"]],
     body: categoryData,
@@ -164,7 +164,7 @@ export function generateDashboardPDF(
     trend.medium.toString()
   ]);
   
-  (pdf as any).autoTable({
+  autoTable(pdf, {
     startY: currentY,
     head: [["Month", "Critical", "High", "Medium"]],
     body: trendData,
@@ -199,7 +199,7 @@ export function generateDashboardPDF(
     risk.status
   ]);
   
-  (pdf as any).autoTable({
+  autoTable(pdf, {
     startY: currentY,
     head: [["Reference", "Title", "Category", "Severity", "Status"]],
     body: topRisksData,
@@ -233,7 +233,7 @@ export function generateDashboardPDF(
     insight.description.substring(0, 100) + (insight.description.length > 100 ? "..." : "")
   ]);
   
-  (pdf as any).autoTable({
+  autoTable(pdf, {
     startY: currentY,
     head: [["Insight", "Type", "Description"]],
     body: insightData,
@@ -403,7 +403,7 @@ function addTableOfContents(pdf: jsPDF) {
 }
 
 // Helper function to create a heatmap representation as a table
-function addHeatmapTable(pdf: jsPDF, heatmapData: { impact: number; probability: number; count: number }[], startY: number) {
+function addHeatmapTable(pdf: jsPDF, heatmapData: { impact: number; probability: number; count: number }[], startY: number): any {
   const cellData: string[][] = [
     ['', '1', '2', '3', '4', '5'],
     ['5', '', '', '', '', ''],
@@ -470,7 +470,7 @@ function addHeatmapTable(pdf: jsPDF, heatmapData: { impact: number; probability:
     }
   }
   
-  (pdf as any).autoTable({
+  autoTable(pdf, {
     startY: startY,
     head: [["", "Very Low", "Low", "Medium", "High", "Very High"]],
     body: [
