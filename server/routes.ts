@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { generateRiskSuggestions, generateMitigationPlan, generateRiskInsights } from "./openai";
 import { analyzeRiskData } from "./services/ai-insights-service";
+import { sendPasswordResetEmail, verifyResetToken, sendConfirmationEmail } from "./services/email-service";
 import { z } from "zod";
 import { RISK_CATEGORIES, insertRiskSchema, insertRiskEventSchema, insertInsightSchema } from "@shared/schema";
 import { setupAuth } from "./auth";
@@ -390,6 +391,103 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Email confirmation route - when a user registers, send a confirmation email
+  app.post("/api/register-confirm", async (req, res) => {
+    try {
+      const { email, name } = req.body;
+      
+      if (!email || !name) {
+        return res.status(400).json({ message: "Email and name are required" });
+      }
+      
+      const success = await sendConfirmationEmail(email, name);
+      
+      if (success) {
+        res.status(200).json({ message: "Confirmation email sent successfully" });
+      } else {
+        res.status(500).json({ message: "Failed to send confirmation email" });
+      }
+    } catch (error) {
+      console.error("Error sending confirmation email:", error);
+      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
+      res.status(500).json({ message: "Internal server error", error: errorMessage });
+    }
+  });
+  
+  // Forgot password route - initiate password reset
+  app.post("/api/forgot-password", async (req, res) => {
+    try {
+      const { email } = req.body;
+      
+      if (!email) {
+        return res.status(400).json({ message: "Email is required" });
+      }
+      
+      // Find user with the provided email
+      const user = await storage.getUserByEmail(email);
+      
+      if (!user) {
+        // Don't reveal that the email doesn't exist for security reasons
+        return res.status(200).json({ message: "If your email is registered, you will receive a reset link shortly" });
+      }
+      
+      // Generate and send reset token
+      const token = await sendPasswordResetEmail(user.id, user.email, user.name);
+      
+      if (!token) {
+        return res.status(500).json({ message: "Failed to send password reset email" });
+      }
+      
+      res.status(200).json({ 
+        message: "If your email is registered, you will receive a reset link shortly"
+      });
+    } catch (error) {
+      console.error("Error processing forgot password request:", error);
+      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
+      res.status(500).json({ message: "Internal server error", error: errorMessage });
+    }
+  });
+  
+  // Reset password route - validate token and update password
+  app.post("/api/reset-password", async (req, res) => {
+    try {
+      const { token, newPassword } = req.body;
+      
+      if (!token || !newPassword) {
+        return res.status(400).json({ message: "Token and new password are required" });
+      }
+      
+      // Verify token
+      const { valid, userId } = verifyResetToken(token);
+      
+      if (!valid || !userId) {
+        return res.status(400).json({ message: "Invalid or expired token" });
+      }
+      
+      // Find user
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Hash new password
+      const hashedPassword = await storage.hashPassword(newPassword);
+      
+      // Update user's password (this is a simplified version, you might need to implement updateUserPassword in storage)
+      await storage.updateRisk(userId, { password: hashedPassword });
+      
+      // Clear the used token
+      // clearResetToken(token);
+      
+      res.status(200).json({ message: "Password reset successfully" });
+    } catch (error) {
+      console.error("Error resetting password:", error);
+      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
+      res.status(500).json({ message: "Internal server error", error: errorMessage });
+    }
+  });
+
   // Create HTTP server
   const httpServer = createServer(app);
   

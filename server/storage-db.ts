@@ -92,6 +92,20 @@ export class DatabaseStorage implements IStorage {
       .returning();
     return user;
   }
+  
+  async updateUserPassword(userId: number, hashedPassword: string): Promise<User | undefined> {
+    try {
+      const [user] = await db
+        .update(users)
+        .set({ password: hashedPassword })
+        .where(eq(users.id, userId))
+        .returning();
+      return user;
+    } catch (error) {
+      console.error("Error updating user password:", error);
+      return undefined;
+    }
+  }
 
   async verifyPassword(supplied: string, stored: string): Promise<boolean> {
     return comparePasswords(supplied, stored);

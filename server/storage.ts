@@ -62,6 +62,7 @@ export interface IStorage {
   getUserByFirebaseUid(firebaseUid: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUserFirebaseUid(userId: number, firebaseUid: string): Promise<User>;
+  updateUserPassword(userId: number, hashedPassword: string): Promise<User | undefined>;
   
   // Authentication operations
   verifyPassword(supplied: string, stored: string): Promise<boolean>;
@@ -195,6 +196,21 @@ export class MemStorage implements IStorage {
     const updatedUser = {
       ...user,
       firebase_uid: firebaseUid
+    };
+    
+    this.users.set(userId, updatedUser);
+    return { ...updatedUser, password: "[REDACTED]" } as User;
+  }
+  
+  async updateUserPassword(userId: number, hashedPassword: string): Promise<User | undefined> {
+    const user = this.users.get(userId);
+    if (!user) {
+      return undefined;
+    }
+    
+    const updatedUser = {
+      ...user,
+      password: hashedPassword
     };
     
     this.users.set(userId, updatedUser);
