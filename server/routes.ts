@@ -10,7 +10,7 @@ import {
   sendConfirmationEmail 
 } from "./services/email-service";
 import { z } from "zod";
-import { RISK_CATEGORIES, insertRiskSchema, insertRiskEventSchema, insertInsightSchema } from "@shared/schema";
+import { RISK_CATEGORIES, insertRiskSchema, insertRiskEventSchema, insertInsightSchema, insertProjectSchema } from "@shared/schema";
 import { setupAuth } from "./auth";
 
 export async function registerRoutes(app: Express): Promise<Server> {
