@@ -11,7 +11,8 @@ import {
   Settings, 
   LogOut,
   ChevronRight,
-  Lightbulb
+  Lightbulb,
+  FolderKanban
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -51,6 +52,12 @@ export function Sidebar() {
             icon={<ClipboardList className="mr-3 h-5 w-5" />}
             label="Risk Register"
             isActive={location === "/risks"}
+          />
+          <NavItem
+            href="/projects"
+            icon={<FolderKanban className="mr-3 h-5 w-5" />}
+            label="Projects"
+            isActive={location === "/projects"}
           />
           <NavItem
             href="/ai-generator"

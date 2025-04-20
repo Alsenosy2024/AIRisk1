@@ -34,7 +34,9 @@ export function Header({ toggleSidebar }: HeaderProps) {
   const pageTitles: Record<string, string> = {
     "/": "Dashboard",
     "/risks": "Risk Register",
+    "/projects": "Projects",
     "/ai-generator": "AI Risk Generator",
+    "/intelligence": "Risk Intelligence",
     "/reports": "Reports",
     "/settings": "Settings",
   };

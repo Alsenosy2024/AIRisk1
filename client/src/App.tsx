@@ -21,6 +21,7 @@ function Router() {
     <Switch>
       <ProtectedRoute path="/" component={Dashboard} />
       <ProtectedRoute path="/risks" component={RiskRegister} />
+      <ProtectedRoute path="/projects" component={Projects} />
       <ProtectedRoute path="/ai-generator" component={AIGenerator} />
       <ProtectedRoute path="/intelligence" component={RiskIntelligence} />
       <ProtectedRoute path="/reports" component={Reports} />
