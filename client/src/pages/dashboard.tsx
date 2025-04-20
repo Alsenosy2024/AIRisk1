@@ -181,7 +181,7 @@ export default function Dashboard() {
         <Header toggleSidebar={toggleSidebar} />
 
         {/* Main content */}
-        <main className="flex-1 overflow-y-auto bg-gradient-to-b from-gray-50 to-white/80 p-4 sm:p-6 lg:p-8">
+        <main className="flex-1 overflow-y-auto bg-dashboard-gradient p-4 sm:p-6 lg:p-8">
           {/* Dashboard Header */}
           <DashboardHeader 
             onCreateRisk={handleCreateRisk} 
@@ -212,46 +212,99 @@ export default function Dashboard() {
             <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3">
               {/* Risk Heatmap Widget */}
               <div className="lg:col-span-1 xl:col-span-1">
-                <div className="dashboard-card h-full glass-card">
-                  <h3 className="text-lg font-medium mb-4 text-gray-800">Risk Heatmap</h3>
-                  <RiskHeatmap heatmapData={dashboardData.heatmapData} />
+                <div className="dashboard-card h-full relative">
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-50/60 to-indigo-50/30"></div>
+                  <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-blue opacity-5 rounded-full blur-2xl -mr-5 -mt-5"></div>
+                  <div className="relative">
+                    <h3 className="text-lg font-semibold mb-4 text-gray-800 flex items-center">
+                      <span className="h-5 w-1 bg-gradient-blue rounded-full mr-2"></span>
+                      Risk Heatmap
+                    </h3>
+                    <RiskHeatmap heatmapData={dashboardData.heatmapData} />
+                  </div>
                 </div>
               </div>
 
               {/* Risks by Category Widget */}
               <div className="lg:col-span-1 xl:col-span-1">
-                <div className="dashboard-card h-full glass-card">
-                  <h3 className="text-lg font-medium mb-4 text-gray-800">Risk Categories</h3>
-                  <RisksByCategory categories={dashboardData.risksByCategory} />
+                <div className="dashboard-card h-full relative">
+                  <div className="absolute inset-0 bg-gradient-to-br from-amber-50/60 to-orange-50/30"></div>
+                  <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-amber opacity-5 rounded-full blur-2xl -mr-5 -mt-5"></div>
+                  <div className="relative">
+                    <h3 className="text-lg font-semibold mb-4 text-gray-800 flex items-center">
+                      <span className="h-5 w-1 bg-gradient-amber rounded-full mr-2"></span>
+                      Risk Categories
+                    </h3>
+                    <RisksByCategory categories={dashboardData.risksByCategory} />
+                  </div>
                 </div>
               </div>
 
               {/* Risk Trend Widget */}
               <div className="lg:col-span-2 xl:col-span-1">
-                <div className="dashboard-card h-full glass-card">
-                  <h3 className="text-lg font-medium mb-4 text-gray-800">Risk Trends</h3>
-                  <RiskTrend trendData={dashboardData.riskTrend} />
+                <div className="dashboard-card h-full relative">
+                  <div className="absolute inset-0 bg-gradient-to-br from-green-50/60 to-teal-50/30"></div>
+                  <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-green opacity-5 rounded-full blur-2xl -mr-5 -mt-5"></div>
+                  <div className="relative">
+                    <h3 className="text-lg font-semibold mb-4 text-gray-800 flex items-center">
+                      <span className="h-5 w-1 bg-gradient-green rounded-full mr-2"></span>
+                      Risk Trends
+                    </h3>
+                    <RiskTrend trendData={dashboardData.riskTrend} />
+                  </div>
                 </div>
               </div>
             </div>
           ) : (
             <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
-              <div className="dashboard-card h-64 glass-card">
-                <h3 className="text-lg font-medium mb-4 text-gray-800">Risk Heatmap</h3>
-                <div className="h-full w-full flex items-center justify-center">
-                  <div className="w-full h-48 bg-gray-100/50 animate-pulse rounded-xl"></div>
+              {/* Risk Heatmap Loading State */}
+              <div className="dashboard-card h-64 relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-50/60 to-indigo-50/30"></div>
+                <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-blue opacity-5 rounded-full blur-2xl -mr-5 -mt-5"></div>
+                <div className="relative">
+                  <h3 className="text-lg font-semibold mb-4 text-gray-800 flex items-center">
+                    <span className="h-5 w-1 bg-gradient-blue rounded-full mr-2"></span>
+                    Risk Heatmap
+                  </h3>
+                  <div className="h-full w-full flex items-center justify-center">
+                    <div className="w-full h-48 bg-blue-100/20 backdrop-blur-sm shadow-sm border border-blue-100/30 animate-pulse rounded-xl flex items-center justify-center">
+                      <div className="w-8 h-8 rounded-full border-2 border-blue-300 border-t-transparent animate-spin"></div>
+                    </div>
+                  </div>
                 </div>
               </div>
-              <div className="dashboard-card h-64 glass-card">
-                <h3 className="text-lg font-medium mb-4 text-gray-800">Risk Categories</h3>
-                <div className="h-full w-full flex items-center justify-center">
-                  <div className="w-full h-48 bg-gray-100/50 animate-pulse rounded-xl"></div>
+              
+              {/* Risk Categories Loading State */}
+              <div className="dashboard-card h-64 relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-amber-50/60 to-orange-50/30"></div>
+                <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-amber opacity-5 rounded-full blur-2xl -mr-5 -mt-5"></div>
+                <div className="relative">
+                  <h3 className="text-lg font-semibold mb-4 text-gray-800 flex items-center">
+                    <span className="h-5 w-1 bg-gradient-amber rounded-full mr-2"></span>
+                    Risk Categories
+                  </h3>
+                  <div className="h-full w-full flex items-center justify-center">
+                    <div className="w-full h-48 bg-amber-100/20 backdrop-blur-sm shadow-sm border border-amber-100/30 animate-pulse rounded-xl flex items-center justify-center">
+                      <div className="w-8 h-8 rounded-full border-2 border-amber-300 border-t-transparent animate-spin"></div>
+                    </div>
+                  </div>
                 </div>
               </div>
-              <div className="dashboard-card h-64 glass-card">
-                <h3 className="text-lg font-medium mb-4 text-gray-800">Risk Trends</h3>
-                <div className="h-full w-full flex items-center justify-center">
-                  <div className="w-full h-48 bg-gray-100/50 animate-pulse rounded-xl"></div>
+              
+              {/* Risk Trends Loading State */}
+              <div className="dashboard-card h-64 relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-green-50/60 to-teal-50/30"></div>
+                <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-green opacity-5 rounded-full blur-2xl -mr-5 -mt-5"></div>
+                <div className="relative">
+                  <h3 className="text-lg font-semibold mb-4 text-gray-800 flex items-center">
+                    <span className="h-5 w-1 bg-gradient-green rounded-full mr-2"></span>
+                    Risk Trends
+                  </h3>
+                  <div className="h-full w-full flex items-center justify-center">
+                    <div className="w-full h-48 bg-green-100/20 backdrop-blur-sm shadow-sm border border-green-100/30 animate-pulse rounded-xl flex items-center justify-center">
+                      <div className="w-8 h-8 rounded-full border-2 border-green-300 border-t-transparent animate-spin"></div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -260,19 +313,30 @@ export default function Dashboard() {
           {/* Top Risks Table */}
           {dashboardData?.topRisks && (
             <div className="mt-8">
-              <div className="dashboard-card glass-card">
-                <h3 className="text-lg font-medium mb-4 text-gray-800">Top Risks</h3>
-                <TopRisksTable 
-                  risks={dashboardData.topRisks} 
-                  onRefresh={() => refetch()} 
-                />
+              <div className="dashboard-card relative">
+                <div className="absolute inset-0 bg-gradient-to-br from-gray-50 to-gray-100/60 opacity-80"></div>
+                <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-blue opacity-5 rounded-full blur-3xl -mr-10 -mt-10"></div>
+                <div className="relative">
+                  <h3 className="text-lg font-semibold mb-4 text-gray-800 flex items-center">
+                    <span className="h-5 w-1 bg-gradient-to-b from-purple-500 to-blue-500 rounded-full mr-2"></span>
+                    Top Risks
+                  </h3>
+                  <TopRisksTable 
+                    risks={dashboardData.topRisks} 
+                    onRefresh={() => refetch()} 
+                  />
+                </div>
               </div>
             </div>
           )}
 
           {/* AI Dashboard Intelligence Section */}
           <div className="mt-8">
-            <div className="dashboard-card bg-gradient-to-br from-white to-gray-50 overflow-hidden border-gray-100 shadow-sm">
+            <div className="dashboard-card relative overflow-hidden border border-violet-100/60">
+              <div className="absolute inset-0 bg-gradient-to-br from-violet-50/50 to-indigo-50/50 opacity-70"></div>
+              <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-purple opacity-5 blur-3xl rounded-full -mr-20 -mt-20"></div>
+              <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-blue opacity-5 blur-3xl rounded-full -ml-20 -mb-20"></div>
+              <div className="relative">
               {/* AI Dashboard Insights - New Component */}
               {isAiInsightsError ? (
                 <div className="p-6 text-center">
@@ -301,6 +365,7 @@ export default function Dashboard() {
                   onRefresh={() => refetchAiInsights()}
                 />
               )}
+              </div>
             </div>
           </div>
           

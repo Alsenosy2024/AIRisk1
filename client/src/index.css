@@ -47,13 +47,38 @@
 @layer components {
   /* Dashboard card styling */
   .dashboard-card {
-    @apply bg-white/80 backdrop-blur-md rounded-2xl shadow-sm p-6 border border-gray-100/50;
+    @apply bg-white/90 backdrop-blur-md rounded-2xl shadow-md p-6 border border-gray-100/80;
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    position: relative;
+    overflow: hidden;
   }
   
   .dashboard-card:hover {
-    @apply shadow-lg border-blue-100/50;
+    @apply shadow-lg border-blue-100/80;
     transform: translateY(-2px);
+  }
+  
+  /* Modern gradient backgrounds */
+  .bg-gradient-blue {
+    @apply bg-gradient-to-br from-blue-500 to-indigo-600;
+  }
+  
+  .bg-gradient-purple {
+    @apply bg-gradient-to-br from-purple-500 to-indigo-600;
+  }
+  
+  .bg-gradient-green {
+    @apply bg-gradient-to-br from-emerald-500 to-teal-600;
+  }
+  
+  .bg-gradient-amber {
+    @apply bg-gradient-to-br from-amber-500 to-orange-600;
+  }
+  
+  .bg-dashboard-gradient {
+    background: radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.1), transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(236, 72, 153, 0.08), transparent 30%),
+                radial-gradient(circle at 10% 40%, rgba(16, 185, 129, 0.08), transparent 30%);
   }
 
   /* Risk status badges */
