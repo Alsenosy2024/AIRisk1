@@ -75,6 +75,27 @@
     @apply bg-gradient-to-br from-amber-500 to-orange-600;
   }
   
+  /* New subtle gradient overlays for cards */
+  .gradient-overlay-blue {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(99, 102, 241, 0.05) 100%);
+  }
+  
+  .gradient-overlay-green {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(5, 150, 105, 0.05) 100%);
+  }
+  
+  .gradient-overlay-amber {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(234, 88, 12, 0.05) 100%);
+  }
+  
+  .gradient-overlay-purple {
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(124, 58, 237, 0.05) 100%);
+  }
+  
+  .gradient-overlay-red {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, rgba(220, 38, 38, 0.05) 100%);
+  }
+  
   .bg-dashboard-gradient {
     background: radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.1), transparent 40%),
                 radial-gradient(circle at 90% 80%, rgba(236, 72, 153, 0.08), transparent 30%),

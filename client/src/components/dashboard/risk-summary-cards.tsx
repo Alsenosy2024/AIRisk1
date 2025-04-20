@@ -85,6 +85,7 @@ interface SummaryCardProps {
   link: string;
   linkText: string;
   linkClassName?: string;
+  cardClass?: string;
 }
 
 function SummaryCard({
@@ -94,10 +95,11 @@ function SummaryCard({
   value,
   link,
   linkText,
-  linkClassName = "text-blue-600 hover:text-blue-700"
+  linkClassName = "text-blue-600 hover:text-blue-700",
+  cardClass = ""
 }: SummaryCardProps) {
   return (
-    <Card className="glass-card backdrop-blur-md border border-white/50 shadow-lg overflow-hidden rounded-xl transition-all duration-300 hover:shadow-xl hover:translate-y-[-2px] relative">
+    <Card className={`glass-card backdrop-blur-md border ${cardClass || 'border-white/50'} shadow-lg overflow-hidden rounded-xl transition-all duration-300 hover:shadow-xl hover:translate-y-[-2px] relative`}>
       <div className="absolute inset-0 bg-gradient-to-br from-white/80 to-white/40 z-0"></div>
       <CardContent className="p-6 relative z-10">
         <div className="flex items-center">
