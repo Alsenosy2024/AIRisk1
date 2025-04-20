@@ -213,22 +213,33 @@ export async function sendPasswordResetEmail(userId: number, email: string, name
 
 // Verify reset token
 export function verifyResetToken(token: string): { valid: boolean, userId?: number } {
+  console.log(`Verifying token: ${token}`);
+  console.log(`Current tokens in store: ${Array.from(resetTokens.keys()).join(', ')}`);
+  
   const resetData = resetTokens.get(token);
   
   if (!resetData) {
+    console.log(`Token not found in store: ${token}`);
     return { valid: false };
   }
   
+  console.log(`Token found for user ID: ${resetData.userId}, expires: ${resetData.expires}`);
+  
   if (new Date() > resetData.expires) {
     // Token has expired, remove it
+    console.log(`Token expired, removing: ${token}`);
     resetTokens.delete(token);
     return { valid: false };
   }
   
+  console.log(`Token is valid for user ID: ${resetData.userId}`);
   return { valid: true, userId: resetData.userId };
 }
 
 // Clear token after use
 export function clearResetToken(token: string): boolean {
-  return resetTokens.delete(token);
+  console.log(`Clearing token: ${token}`);
+  const result = resetTokens.delete(token);
+  console.log(`Token cleared successfully: ${result}`);
+  return result;
 }

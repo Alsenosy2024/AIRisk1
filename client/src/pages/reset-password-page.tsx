@@ -65,16 +65,24 @@ export default function ResetPasswordPage() {
     setIsSubmitting(true);
     setError(null);
     
+    console.log("Submitting reset password with token:", token);
+    
     try {
       const response = await apiRequest("POST", "/api/reset-password", {
         token,
         newPassword: data.password,
       });
       
+      console.log("Reset password response status:", response.status);
+      
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Something went wrong");
+        const errorData = await response.json();
+        console.error("Reset password error:", errorData);
+        throw new Error(errorData.message || "Something went wrong");
       }
+      
+      const result = await response.json();
+      console.log("Reset password success:", result);
       
       setIsSuccessful(true);
       
@@ -90,6 +98,7 @@ export default function ResetPasswordPage() {
       }, 3000);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "An error occurred";
+      console.error("Reset password error details:", err);
       setError(errorMessage);
       
       toast({
