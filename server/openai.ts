@@ -3,8 +3,12 @@ import type { InsertRisk, Risk, RISK_CATEGORIES } from "@shared/schema";
 
 // Initialize OpenAI client
 // If OPENAI_API_KEY is not set, the client will throw an error when attempting API calls
-const openai = new OpenAI({ 
-  apiKey: process.env.OPENAI_API_KEY 
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+  dangerouslyAllowBrowser: false,
+  defaultHeaders: {
+    "OpenAI-Beta": "assistants=v1"
+  }
 });
 
 // The newest OpenAI model is "gpt-4o" which was released May 13, 2024. Do not change this unless explicitly requested by the user
