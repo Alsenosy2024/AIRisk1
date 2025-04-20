@@ -407,7 +407,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           type: insight.type === "trend" ? "Trend" : 
                 insight.type === "warning" ? "Warning" : 
                 "Suggestion",
-          is_dismissed: false,
           related_category: null
         });
       }

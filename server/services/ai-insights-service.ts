@@ -29,6 +29,20 @@ function generateId(): string {
 }
 
 /**
+ * Creates a properly configured OpenAI client
+ */
+function createOpenAIClient(): OpenAI {
+  if (!process.env.OPENAI_API_KEY) {
+    throw new Error("OPENAI_API_KEY environment variable is required");
+  }
+  
+  return new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+    dangerouslyAllowBrowser: false
+  });
+}
+
+/**
  * Analyzes risk data using OpenAI to generate insights and recommended actions
  */
 export async function analyzeRiskData(
@@ -51,11 +65,8 @@ export async function analyzeRiskData(
     }
     
     try {
-      // Initialize OpenAI client
-      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-      
-      // Test the API connection with a simple request
-      await openai.models.list();
+      // Initialize properly configured OpenAI client
+      const openai = createOpenAIClient();
       
       // Continue with real implementation
       return await generateOpenAIInsights(riskData, openai);
@@ -159,7 +170,9 @@ async function generateOpenAIInsights(riskData: any, openai: OpenAI): Promise<AI
  * Generates basic insights if OpenAI API is unavailable
  */
 function generateFallbackInsights(riskData: any): AIRiskAnalysis {
-  const risks = riskData.risks || [];
+  // Ensure risks is an array - handle both direct array and object with risks property
+  const risks = Array.isArray(riskData) ? riskData : 
+               (riskData && Array.isArray(riskData.risks)) ? riskData.risks : [];
   const currentDate = new Date();
   
   // Generate basic insights based on available risk data
