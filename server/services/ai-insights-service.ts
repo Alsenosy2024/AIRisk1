@@ -58,7 +58,7 @@ export async function analyzeRiskData(
       await openai.models.list();
       
       // Continue with real implementation
-      return await generateAIInsights(riskData, openai);
+      return await generateOpenAIInsights(riskData, openai);
     } catch (error) {
       console.error("Error connecting to OpenAI API:", error);
       console.log("Using fallback insights due to OpenAI API error");
@@ -67,6 +67,91 @@ export async function analyzeRiskData(
   } catch (error) {
     console.error("Error analyzing risk data with AI:", error);
     return generateFallbackInsights({risks, riskEvents, projects});
+  }
+}
+
+/**
+ * Generates AI insights using OpenAI
+ */
+async function generateOpenAIInsights(riskData: any, openai: OpenAI): Promise<AIRiskAnalysis> {
+  const prompt = `
+  As an AI risk analyst, analyze the following risk data and generate two sets of information:
+  1. Key Insights - Important patterns, urgent matters, and analytical findings
+  2. Required Actions - Specific, actionable recommendations prioritized by importance
+
+  For Key Insights, focus on:
+  - Overdue risks or actions
+  - Trends in risk categories or status changes
+  - Potential bottlenecks or stalled risks
+  - Distribution patterns (severity, categories, ownership)
+
+  For Required Actions, prioritize recommendations as:
+  - Critical (immediate action needed)
+  - High (action needed within days)
+  - Important (action needed within a week)
+  - Medium (should be addressed)
+  - Low (for consideration)
+
+  Each action should have a clear title, description, priority level, and action type.
+  Action types include: "overdue", "approval", "mitigation", "review", "assignment", or "escalation".
+
+  Risk Data:
+  ${JSON.stringify(riskData, null, 2)}
+
+  Respond with valid JSON in the following format:
+  {
+    "keyInsights": [
+      {
+        "title": "string",
+        "description": "string",
+        "type": "trend|warning|deadline|info",
+        "severity": "critical|high|medium|low"
+      }
+    ],
+    "actionItems": [
+      {
+        "title": "string",
+        "description": "string",
+        "priority": "critical|high|important|medium|low",
+        "type": "overdue|approval|mitigation|review|assignment|escalation",
+        "relatedRiskIds": [number]
+      }
+    ]
+  }
+  `;
+
+  try {
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024
+      messages: [
+        { role: "system", content: "You are a risk analysis expert that specializes in finding patterns and making actionable recommendations." },
+        { role: "user", content: prompt }
+      ],
+      response_format: { type: "json_object" },
+      temperature: 0.2,
+    });
+
+    const content = response.choices[0].message.content || '{"keyInsights":[], "actionItems":[]}';
+    const analysis = JSON.parse(content);
+    
+    // Add unique IDs to each insight and action
+    const keyInsights = (analysis.keyInsights || []).map((insight: KeyInsight) => ({
+      ...insight,
+      id: generateId()
+    }));
+    
+    const actionItems = (analysis.actionItems || []).map((action: ActionItem) => ({
+      ...action,
+      id: generateId()
+    }));
+
+    return { 
+      keyInsights: keyInsights || [],
+      actionItems: actionItems || []
+    };
+  } catch (error) {
+    console.error("Error in OpenAI completion:", error);
+    throw new Error("Failed to generate AI insights");
   }
 }
 

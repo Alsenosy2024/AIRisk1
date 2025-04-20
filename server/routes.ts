@@ -368,6 +368,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // GET endpoint for dashboard AI insights
+  app.get("/api/ai/dashboard-insights", async (req, res) => {
+    try {
+      // Get all risks for analysis
+      const risks = await storage.getAllRisks();
+      const riskEvents: any[] = []; // You can get risk events if needed
+      const projects = await storage.getAllProjects();
+      
+      // Then analyze using AI
+      const analysisResults = await analyzeRiskData({ risks, riskEvents, projects });
+      
+      res.status(200).json(analysisResults);
+    } catch (error) {
+      console.error("Error generating dashboard insights:", error);
+      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
+      res.status(500).json({ 
+        message: "Failed to generate AI insights",
+        error: errorMessage,
+        details: "Please ensure your OpenAI API key is properly configured."
+      });
+    }
+  });
+
   app.post("/api/ai/analyze", requireAuth, async (req, res) => {
     try {
       // First get the risks data
