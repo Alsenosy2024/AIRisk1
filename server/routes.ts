@@ -48,6 +48,108 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Internal server error", error: errorMessage });
     }
   });
+
+  app.get("/api/projects/:id", requireAuth, async (req, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const project = await storage.getProject(projectId);
+      
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      
+      res.status(200).json(project);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
+      res.status(500).json({ message: "Internal server error", error: errorMessage });
+    }
+  });
+
+  app.post("/api/projects", requireAuth, requireRole(["Admin", "Project Manager"]), async (req, res) => {
+    try {
+      // Validate request body against schema
+      const result = insertProjectSchema.safeParse(req.body);
+      
+      if (!result.success) {
+        return res.status(400).json({ 
+          message: "Invalid project data", 
+          errors: result.error.flatten().fieldErrors 
+        });
+      }
+      
+      // Create new project
+      const project = await storage.createProject({
+        ...result.data,
+        created_by: req.user!.id
+      });
+      
+      res.status(201).json(project);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
+      res.status(500).json({ message: "Internal server error", error: errorMessage });
+    }
+  });
+
+  app.patch("/api/projects/:id", requireAuth, requireRole(["Admin", "Project Manager"]), async (req, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const project = await storage.getProject(projectId);
+      
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      
+      // Validate request body against schema
+      const result = insertProjectSchema.partial().safeParse(req.body);
+      
+      if (!result.success) {
+        return res.status(400).json({ 
+          message: "Invalid project data", 
+          errors: result.error.flatten().fieldErrors 
+        });
+      }
+      
+      // Update project
+      const updatedProject = await storage.updateProject(projectId, result.data);
+      
+      res.status(200).json(updatedProject);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
+      res.status(500).json({ message: "Internal server error", error: errorMessage });
+    }
+  });
+
+  app.delete("/api/projects/:id", requireAuth, requireRole(["Admin"]), async (req, res) => {
+    try {
+      const projectId = parseInt(req.params.id);
+      const project = await storage.getProject(projectId);
+      
+      if (!project) {
+        return res.status(404).json({ message: "Project not found" });
+      }
+      
+      // Check if project has associated risks
+      const risks = await storage.getRisksByProject(projectId);
+      
+      if (risks.length > 0) {
+        return res.status(400).json({ 
+          message: "Cannot delete project with associated risks. Please remove or reassign all risks first." 
+        });
+      }
+      
+      // Delete project
+      const success = await storage.deleteProject(projectId);
+      
+      if (success) {
+        res.status(200).json({ message: "Project deleted successfully" });
+      } else {
+        res.status(500).json({ message: "Failed to delete project" });
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
+      res.status(500).json({ message: "Internal server error", error: errorMessage });
+    }
+  });
   
   // Risk routes
   app.get("/api/risks", requireAuth, async (req, res) => {

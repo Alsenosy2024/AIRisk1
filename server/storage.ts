@@ -72,6 +72,8 @@ export interface IStorage {
   getProject(id: number): Promise<Project | undefined>;
   getAllProjects(): Promise<Project[]>;
   createProject(project: InsertProject): Promise<Project>;
+  updateProject(id: number, project: Partial<InsertProject>): Promise<Project | undefined>;
+  deleteProject(id: number): Promise<boolean>;
   
   // Risk operations
   getRisk(id: number): Promise<Risk | undefined>;
@@ -236,6 +238,23 @@ export class MemStorage implements IStorage {
     
     this.projects.set(id, project);
     return project;
+  }
+
+  async updateProject(id: number, updates: Partial<InsertProject>): Promise<Project | undefined> {
+    const existingProject = this.projects.get(id);
+    if (!existingProject) return undefined;
+    
+    const updatedProject: Project = {
+      ...existingProject,
+      ...updates
+    };
+    
+    this.projects.set(id, updatedProject);
+    return updatedProject;
+  }
+  
+  async deleteProject(id: number): Promise<boolean> {
+    return this.projects.delete(id);
   }
   
   // Risk operations

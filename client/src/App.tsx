@@ -13,6 +13,7 @@ import Settings from "@/pages/settings";
 import AuthPage from "@/pages/auth-page";
 import ResetPasswordPage from "@/pages/reset-password-page";
 import RiskIntelligence from "@/pages/risk-intelligence";
+import Projects from "@/pages/projects";
 import { ThemeProvider } from "@/components/theme-provider";
 
 function Router() {

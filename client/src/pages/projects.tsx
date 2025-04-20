@@ -52,6 +52,8 @@ const projectFormSchema = z.object({
   name: z.string().min(1, "Project name is required").max(100, "Project name must be less than 100 characters"),
   description: z.string().optional(),
   status: z.enum(["Active", "Completed", "On Hold"]).default("Active"),
+  // For update operation only, not part of the form values
+  id: z.number().optional(),
 });
 
 type ProjectFormValues = z.infer<typeof projectFormSchema>;
