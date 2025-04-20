@@ -44,6 +44,7 @@ export default function ResetPasswordPage() {
       return;
     }
     
+    console.log("Token found in URL:", tokenFromQuery);
     setToken(tokenFromQuery);
   }, []);
 
