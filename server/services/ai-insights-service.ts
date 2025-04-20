@@ -46,92 +46,24 @@ export async function analyzeRiskData(
 
     // If OpenAI API isn't available, return fallback insights
     if (!process.env.OPENAI_API_KEY) {
-      console.warn("OPENAI_API_KEY not found. Using fallback insights.");
+      console.warn("OPENAI_API_KEY not found. Using fallback insights. Please provide a valid OPENAI_API_KEY.");
       return generateFallbackInsights(riskData);
     }
-
-    // For development purposes, temporarily return fallback insights
-    // to avoid API rate limits until the real implementation is ready
-    console.log("Using fallback insights in development");
-    return generateFallbackInsights(riskData);
-
-    /* 
-    // Uncomment when ready to use real OpenAI API
-    const prompt = `
-    As an AI risk analyst, analyze the following risk data and generate two sets of information:
-    1. Key Insights - Important patterns, urgent matters, and analytical findings
-    2. Required Actions - Specific, actionable recommendations prioritized by importance
-
-    For Key Insights, focus on:
-    - Overdue risks or actions
-    - Trends in risk categories or status changes
-    - Potential bottlenecks or stalled risks
-    - Distribution patterns (severity, categories, ownership)
-
-    For Required Actions, prioritize recommendations as:
-    - Critical (immediate action needed)
-    - High (action needed within days)
-    - Important (action needed within a week)
-    - Medium (should be addressed)
-    - Low (for consideration)
-
-    Each action should have a clear title, description, priority level, and action type.
-    Action types include: "overdue", "approval", "mitigation", "review", "assignment", or "escalation".
-
-    Risk Data:
-    ${JSON.stringify(riskData, null, 2)}
-
-    Respond with valid JSON in the following format:
-    {
-      "keyInsights": [
-        {
-          "title": "string",
-          "description": "string",
-          "type": "trend|warning|deadline|info",
-          "severity": "critical|high|medium|low"
-        }
-      ],
-      "actionItems": [
-        {
-          "title": "string",
-          "description": "string",
-          "priority": "critical|high|important|medium|low",
-          "type": "overdue|approval|mitigation|review|assignment|escalation",
-          "relatedRiskIds": [number]
-        }
-      ]
+    
+    try {
+      // Initialize OpenAI client
+      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+      
+      // Test the API connection with a simple request
+      await openai.models.list();
+      
+      // Continue with real implementation
+      return await generateAIInsights(riskData, openai);
+    } catch (error) {
+      console.error("Error connecting to OpenAI API:", error);
+      console.log("Using fallback insights due to OpenAI API error");
+      return generateFallbackInsights(riskData);
     }
-    `;
-
-    // Initialize OpenAI client
-    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-      messages: [
-        { role: "system", content: "You are a risk analysis expert that specializes in finding patterns and making actionable recommendations." },
-        { role: "user", content: prompt }
-      ],
-      response_format: { type: "json_object" },
-      temperature: 0.2,
-    });
-
-    const content = response.choices[0].message.content || '{"keyInsights":[], "actionItems":[]}';
-    const analysis = typeof content === 'string' ? JSON.parse(content) : content;
-    
-    // Add unique IDs to each insight and action
-    const keyInsights = analysis.keyInsights.map((insight: KeyInsight) => ({
-      ...insight,
-      id: generateId()
-    }));
-    
-    const actionItems = analysis.actionItems.map((action: ActionItem) => ({
-      ...action,
-      id: generateId()
-    }));
-
-    return { keyInsights, actionItems };
-    */
   } catch (error) {
     console.error("Error analyzing risk data with AI:", error);
     return generateFallbackInsights({risks, riskEvents, projects});
