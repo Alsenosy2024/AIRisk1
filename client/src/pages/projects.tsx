@@ -183,15 +183,31 @@ function ProjectForm({
 
         <div className="flex justify-end space-x-2 pt-4">
           {onCancel && (
-            <Button type="button" variant="outline" onClick={onCancel}>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={onCancel}
+              className="border-gray-300 text-gray-700 hover:bg-gray-50"
+            >
               Cancel
             </Button>
           )}
           <Button 
             type="submit" 
             disabled={mutation.isPending}
+            className="bg-blue-600 text-white hover:bg-blue-700"
           >
-            {mutation.isPending ? 'Saving...' : (defaultValues && 'id' in defaultValues ? 'Update Project' : 'Create Project')}
+            {mutation.isPending ? (
+              <span className="flex items-center gap-2">
+                <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Saving...
+              </span>
+            ) : (
+              <span>{defaultValues && 'id' in defaultValues ? 'Update Project' : 'Create Project'}</span>
+            )}
           </Button>
         </div>
       </form>
@@ -298,8 +314,9 @@ export default function ProjectsPage() {
                 {canManageProjects && (
                   <Button 
                     onClick={() => setIsCreateDialogOpen(true)}
-                    className="button-modern bg-blue-50 text-blue-600 hover:bg-blue-100 border-blue-200/30"
+                    className="bg-blue-600 text-white hover:bg-blue-700 flex items-center gap-2"
                   >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
                     Create New Project
                   </Button>
                 )}
@@ -315,24 +332,24 @@ export default function ProjectsPage() {
                   <div className="flex justify-between items-start">
                     <CardTitle className="text-xl font-semibold text-gray-800">{project.name}</CardTitle>
                     {canManageProjects && (
-                      <div className="flex space-x-1">
+                      <div className="flex space-x-2">
                         <Button 
-                          variant="ghost" 
+                          variant="outline" 
                           size="sm" 
                           onClick={() => handleEditProject(project)}
-                          className="h-8 w-8 p-0 rounded-full text-gray-500 hover:text-blue-600 hover:bg-blue-50"
+                          className="h-8 flex items-center gap-1 text-blue-600 border-blue-200 hover:bg-blue-50 hover:border-blue-300"
                         >
                           <PenSquare className="h-4 w-4" />
-                          <span className="sr-only">Edit</span>
+                          <span>Edit</span>
                         </Button>
                         <Button 
-                          variant="ghost" 
+                          variant="outline" 
                           size="sm" 
                           onClick={() => handleDeleteProject(project)}
-                          className="h-8 w-8 p-0 rounded-full text-gray-500 hover:text-red-600 hover:bg-red-50"
+                          className="h-8 flex items-center gap-1 text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
                         >
                           <Trash2 className="h-4 w-4" />
-                          <span className="sr-only">Delete</span>
+                          <span>Delete</span>
                         </Button>
                       </div>
                     )}
@@ -394,10 +411,12 @@ export default function ProjectsPage() {
               Create a new project to organize your risks and tracking.
             </DialogDescription>
           </DialogHeader>
-          <ProjectForm 
-            onSuccess={() => setIsCreateDialogOpen(false)}
-            onCancel={() => setIsCreateDialogOpen(false)}
-          />
+          <div className="mt-4">
+            <ProjectForm 
+              onSuccess={() => setIsCreateDialogOpen(false)}
+              onCancel={() => setIsCreateDialogOpen(false)}
+            />
+          </div>
         </DialogContent>
       </Dialog>
 
@@ -410,18 +429,20 @@ export default function ProjectsPage() {
               Update project details.
             </DialogDescription>
           </DialogHeader>
-          {selectedProject && (
-            <ProjectForm 
-              defaultValues={{
-                id: selectedProject.id, // Pass id for update operation
-                name: selectedProject.name,
-                description: selectedProject.description || "",
-                status: selectedProject.status as "Active" | "Completed" | "On Hold",
-              }}
-              onSuccess={() => setIsEditDialogOpen(false)}
-              onCancel={() => setIsEditDialogOpen(false)}
-            />
-          )}
+          <div className="mt-4">
+            {selectedProject && (
+              <ProjectForm 
+                defaultValues={{
+                  id: selectedProject.id, // Pass id for update operation
+                  name: selectedProject.name,
+                  description: selectedProject.description || "",
+                  status: selectedProject.status as "Active" | "Completed" | "On Hold",
+                }}
+                onSuccess={() => setIsEditDialogOpen(false)}
+                onCancel={() => setIsEditDialogOpen(false)}
+              />
+            )}
+          </div>
         </DialogContent>
       </Dialog>
 
@@ -435,15 +456,33 @@ export default function ProjectsPage() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="mt-6 flex justify-end space-x-2">
-            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+            <Button 
+              variant="outline" 
+              onClick={() => setIsDeleteDialogOpen(false)}
+              className="border-gray-300"
+            >
               Cancel
             </Button>
             <Button 
               variant="destructive" 
               onClick={confirmDelete}
               disabled={deleteMutation.isPending}
+              className="bg-red-600 hover:bg-red-700"
             >
-              {deleteMutation.isPending ? "Deleting..." : "Delete Project"}
+              {deleteMutation.isPending ? (
+                <span className="flex items-center gap-2">
+                  <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Deleting...
+                </span>
+              ) : (
+                <span className="flex items-center gap-2">
+                  <Trash2 className="h-4 w-4" />
+                  Delete Project
+                </span>
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
