@@ -4,6 +4,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { Header } from "@/components/layout/header";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Button } from "@/components/ui/button";
+import { Link } from "wouter";
 import { 
   Dialog, 
   DialogContent, 
@@ -370,15 +371,19 @@ export default function ProjectsPage() {
                   </p>
                 </CardContent>
                 <CardFooter className="pt-1 pb-4 flex justify-between items-center">
-                  <div className="flex items-center space-x-4 text-sm text-gray-500">
-                    <div className="flex items-center">
-                      <FileText className="h-4 w-4 mr-1" />
-                      <span>View Details</span>
+                  <Link to={`/risks?projectId=${project.id}`} className="w-full">
+                    <div className="flex items-center justify-between w-full">
+                      <div className="flex items-center space-x-4 text-sm text-blue-600 hover:text-blue-800 transition-colors">
+                        <div className="flex items-center">
+                          <FileText className="h-4 w-4 mr-1" />
+                          <span>View Risk Register</span>
+                        </div>
+                      </div>
+                      <Button variant="ghost" size="sm" className="p-0 h-8 w-8 rounded-full text-blue-600 hover:bg-blue-50">
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
                     </div>
-                  </div>
-                  <Button variant="ghost" size="sm" className="p-0 h-8 w-8 rounded-full">
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
+                  </Link>
                 </CardFooter>
               </Card>
             ))}

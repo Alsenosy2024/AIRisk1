@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { jsPDF } from "jspdf";
 import 'jspdf-autotable';
 import * as XLSX from 'xlsx';
+import { useLocation } from "wouter";
 
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
@@ -13,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { FilePlus, FileDown, Printer } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { RiskForm } from "@/components/risks/risk-form";
+import { Risk } from "@shared/schema";
 
 export default function RiskRegister() {
   const [sidebarVisible, setSidebarVisible] = useState(true);
@@ -20,12 +22,23 @@ export default function RiskRegister() {
   const [filters, setFilters] = useState({});
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [location] = useLocation();
+
+  // Parse URL for projectId
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const projectId = searchParams.get('projectId');
+    
+    if (projectId) {
+      setFilters(prev => ({ ...prev, project_id: parseInt(projectId, 10) }));
+    }
+  }, [location]);
 
   // Construct the query key with filters
   const queryKey = ["/api/risks", filters];
 
   // Fetch risks with filters
-  const { data: risks = [], isLoading, refetch } = useQuery({
+  const { data: risks = [], isLoading, refetch } = useQuery<Risk[]>({
     queryKey,
     staleTime: 1000 * 60, // 1 minute
   });
