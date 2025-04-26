@@ -40,16 +40,30 @@ export function RiskFilters({ onFilterChange, initialFilters }: RiskFiltersProps
   });
 
   // Fetch projects for filter dropdown
-  const { data: projects = [] } = useQuery({
+  const { data: projects = [] } = useQuery<any[]>({
     queryKey: ["/api/projects"],
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
   // Fetch users for owner filter dropdown
-  const { data: users = [] } = useQuery({
+  const { data: users = [] } = useQuery<any[]>({
     queryKey: ["/api/users"],
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
+
+  // Update filters when initialFilters changes
+  useEffect(() => {
+    if (initialFilters) {
+      setFilters(prev => ({
+        ...prev,
+        project_id: initialFilters.project_id ? initialFilters.project_id.toString() : "",
+        owner_id: initialFilters.owner_id ? initialFilters.owner_id.toString() : "",
+        category: initialFilters.category || "",
+        severity: initialFilters.severity || "",
+        status: initialFilters.status || "",
+      }));
+    }
+  }, [initialFilters]);
 
   // Update parent component when filters change
   useEffect(() => {
@@ -78,7 +92,8 @@ export function RiskFilters({ onFilterChange, initialFilters }: RiskFiltersProps
   const resetFilters = () => {
     setFilters({
       search: "",
-      project_id: "",
+      // Preserve project_id from initialFilters if available
+      project_id: initialFilters?.project_id ? initialFilters.project_id.toString() : "",
       owner_id: "",
       category: "",
       severity: "",
@@ -116,7 +131,7 @@ export function RiskFilters({ onFilterChange, initialFilters }: RiskFiltersProps
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Projects</SelectItem>
-                {projects.map((project) => (
+                {projects.map((project: any) => (
                   <SelectItem key={project.id} value={project.id.toString()}>
                     {project.name}
                   </SelectItem>
@@ -136,7 +151,7 @@ export function RiskFilters({ onFilterChange, initialFilters }: RiskFiltersProps
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Owners</SelectItem>
-                {users.map((user) => (
+                {users.map((user: any) => (
                   <SelectItem key={user.id} value={user.id.toString()}>
                     {user.name}
                   </SelectItem>
@@ -187,23 +202,24 @@ export function RiskFilters({ onFilterChange, initialFilters }: RiskFiltersProps
 
           {/* Status Filter */}
           <div className="lg:col-span-2 flex space-x-4">
-            <Select
-              value={filters.status}
-              onValueChange={(value) => handleSelectChange("status", value)}
-              className="flex-1"
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                {RISK_STATUS.map((status) => (
-                  <SelectItem key={status} value={status}>
-                    {status}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex-1">
+              <Select
+                value={filters.status}
+                onValueChange={(value) => handleSelectChange("status", value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  {RISK_STATUS.map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {status}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
             {/* Reset Filters */}
             <Button

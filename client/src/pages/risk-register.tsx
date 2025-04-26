@@ -192,7 +192,10 @@ export default function RiskRegister() {
           </div>
 
           {/* Risk Filters */}
-          <RiskFilters onFilterChange={handleFilterChange} />
+          <RiskFilters 
+            onFilterChange={handleFilterChange}
+            initialFilters={filters}
+          />
 
           {/* Risk Table */}
           {isLoading ? (
