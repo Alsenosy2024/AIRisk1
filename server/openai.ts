@@ -5,10 +5,18 @@ import type { InsertRisk, Risk, RISK_CATEGORIES } from "@shared/schema";
 // If OPENAI_API_KEY is not set, the client will throw an error when attempting API calls
 // Using a factory function to create a fresh client each time to avoid persistent headers
 function createOpenAIClient() {
-  return new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-    dangerouslyAllowBrowser: false
-  });
+  // Create a configuration object without organization header
+  const configuration = {
+    apiKey: process.env.OPENAI_API_KEY
+  };
+  
+  // Create a client with explicit configuration to avoid headers inheritance
+  const client = new OpenAI(configuration);
+  
+  // Force empty organization to override any default
+  client.organization = "";
+  
+  return client;
 }
 
 // The newest OpenAI model is "gpt-4o" which was released May 13, 2024. Do not change this unless explicitly requested by the user

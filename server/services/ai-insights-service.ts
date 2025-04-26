@@ -29,18 +29,25 @@ function generateId(): string {
 }
 
 /**
- * Creates a properly configured OpenAI client
+ * Creates a properly configured OpenAI client with no organization header
  */
 function createOpenAIClient(): OpenAI {
   if (!process.env.OPENAI_API_KEY) {
     throw new Error("OPENAI_API_KEY environment variable is required");
   }
   
-  return new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-    // Remove organization header to avoid authentication issues
-    dangerouslyAllowBrowser: false
-  });
+  // Create a configuration object without organization header
+  const configuration = {
+    apiKey: process.env.OPENAI_API_KEY
+  };
+  
+  // Create a client with explicit configuration to avoid headers inheritance
+  const client = new OpenAI(configuration);
+  
+  // Force empty organization to override any default
+  client.organization = "";
+  
+  return client;
 }
 
 /**
