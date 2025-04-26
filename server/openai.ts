@@ -3,17 +3,19 @@ import type { InsertRisk, Risk, RISK_CATEGORIES } from "@shared/schema";
 
 // Initialize OpenAI client
 // If OPENAI_API_KEY is not set, the client will throw an error when attempting API calls
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-  // Do not set organization header as it can cause authentication issues
-  dangerouslyAllowBrowser: false
-});
+// Using a factory function to create a fresh client each time to avoid persistent headers
+function createOpenAIClient() {
+  return new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+    dangerouslyAllowBrowser: false
+  });
+}
 
 // The newest OpenAI model is "gpt-4o" which was released May 13, 2024. Do not change this unless explicitly requested by the user
 const AI_MODEL = "gpt-4o";
 
 // Calculate severity based on probability and impact
-function calculateSeverity(probability: number, impact: number): string {
+function calculateSeverity(probability: number, impact: number): "Critical" | "High" | "Medium" | "Low" | "Very Low" {
   const score = probability * impact;
   if (score >= 20) return "Critical";
   if (score >= 12) return "High";
@@ -51,6 +53,7 @@ export async function generateRiskSuggestions(projectDescription: string, indust
     `;
 
     try {
+      const openai = createOpenAIClient();
       const response = await openai.chat.completions.create({
         model: AI_MODEL,
         messages: [{ role: "user", content: prompt }],
@@ -81,7 +84,7 @@ export async function generateRiskSuggestions(projectDescription: string, indust
         return risks.map((risk: any) => ({
           title: risk.title,
           description: risk.description,
-          category: risk.category as any, // Handle category type
+          category: risk.category as "Technical" | "Financial" | "Operational" | "Security" | "Organizational" | "External",
           probability: Number(risk.probability),
           impact: Number(risk.impact),
           severity: calculateSeverity(Number(risk.probability), Number(risk.impact)),
@@ -128,6 +131,7 @@ export async function generateMitigationPlan(risk: Partial<Risk>): Promise<strin
       Format your response as plain text, focusing only on the mitigation plan itself.
     `;
 
+    const openai = createOpenAIClient();
     const response = await openai.chat.completions.create({
       model: AI_MODEL,
       messages: [{ role: "user", content: prompt }],
@@ -182,6 +186,7 @@ export async function generateRiskInsights(risks: Risk[], categories: typeof RIS
       IMPORTANT: Ensure insights are data-driven, specific, and provide actionable recommendations.
     `;
 
+    const openai = createOpenAIClient();
     const response = await openai.chat.completions.create({
       model: AI_MODEL,
       messages: [{ role: "user", content: prompt }],
