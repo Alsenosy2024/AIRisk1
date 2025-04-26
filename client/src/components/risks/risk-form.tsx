@@ -45,11 +45,12 @@ type RiskFormValues = z.infer<typeof riskFormSchema>;
 
 interface RiskFormProps {
   risk?: any;
+  initialProjectId?: number;
   onSuccess?: () => void;
   onCancel?: () => void;
 }
 
-export function RiskForm({ risk, onSuccess, onCancel }: RiskFormProps) {
+export function RiskForm({ risk, initialProjectId, onSuccess, onCancel }: RiskFormProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -77,7 +78,7 @@ export function RiskForm({ risk, onSuccess, onCancel }: RiskFormProps) {
     status: risk?.status || "Identified",
     mitigation_plan: risk?.mitigation_plan || "",
     owner_id: risk?.owner_id || null,
-    project_id: risk?.project_id || null,
+    project_id: risk?.project_id || initialProjectId || null,
   };
 
   // Initialize form

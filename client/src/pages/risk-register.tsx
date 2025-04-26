@@ -211,6 +211,7 @@ export default function RiskRegister() {
                 <DialogTitle>Add New Risk</DialogTitle>
               </DialogHeader>
               <RiskForm
+                initialProjectId={filters.project_id as number | undefined}
                 onSuccess={() => {
                   setIsCreateDialogOpen(false);
                   queryClient.invalidateQueries({ queryKey: ["/api/risks"] });
