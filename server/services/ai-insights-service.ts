@@ -36,13 +36,9 @@ function createOpenAIClient(): OpenAI {
     throw new Error("OPENAI_API_KEY environment variable is required");
   }
   
-  // Note: Don't include the organization parameter unless explicitly provided
   return new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
-    dangerouslyAllowBrowser: false,
-    defaultHeaders: {
-      "OpenAI-Beta": "assistants=v1"
-    }
+    dangerouslyAllowBrowser: false
   });
 }
 
