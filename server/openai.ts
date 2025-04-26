@@ -49,15 +49,21 @@ export async function generateRiskSuggestions(projectDescription: string, indust
       5. Impact rating (1-5 scale where 1 is very low, 5 is very high)
       6. A suggested mitigation plan
       
-      Format your response as a JSON array with objects containing the following fields:
-      - title (string)
-      - description (string)
-      - category (string, one of the categories mentioned above)
-      - probability (number 1-5)
-      - impact (number 1-5)
-      - mitigation_plan (string)
+      INSTRUCTIONS FOR FORMATTING RESPONSE:
+      1. Your response MUST be formatted as a JSON array of risk objects.
+      2. The response should look like this: [{"title": "Risk Title", "description": "Risk description", ...}, {...}]
+      3. Each risk object must have the following fields:
+         - title (string)
+         - description (string)
+         - category (string, one of the categories mentioned above)
+         - probability (number 1-5)
+         - impact (number 1-5)
+         - mitigation_plan (string)
       
-      IMPORTANT: Ensure all risks are specific to the project description and provide realistic, actionable mitigation plans.
+      IMPORTANT: 
+      - Ensure all risks are specific to the project description.
+      - Provide realistic, actionable mitigation plans.
+      - Format must be a valid JSON array, not a single object or any other format.
     `;
 
     try {
@@ -82,11 +88,22 @@ export async function generateRiskSuggestions(projectDescription: string, indust
 
       try {
         const parsedResponse = JSON.parse(content);
-        const risks = parsedResponse.risks || parsedResponse;
+        let risks;
         
-        if (!Array.isArray(risks)) {
-          console.error("Response is not an array:", JSON.stringify(parsedResponse));
-          throw new Error("Invalid response format: expected an array of risks");
+        // Handle different response formats intelligently
+        if (Array.isArray(parsedResponse)) {
+          // Direct array format
+          risks = parsedResponse;
+        } else if (parsedResponse.risks && Array.isArray(parsedResponse.risks)) {
+          // Array inside 'risks' property
+          risks = parsedResponse.risks;
+        } else if (parsedResponse.title && parsedResponse.description) {
+          // Single risk object - wrap in array
+          risks = [parsedResponse];
+          console.log("Converted single risk to array format");
+        } else {
+          console.error("Response is not a valid risk format:", JSON.stringify(parsedResponse));
+          throw new Error("Invalid response format: expected risks data");
         }
 
         return risks.map((risk: any) => ({
