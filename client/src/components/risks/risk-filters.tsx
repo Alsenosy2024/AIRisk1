@@ -44,9 +44,9 @@ export function RiskFilters({ onFilterChange }: RiskFiltersProps) {
 
   // Update parent component when filters change
   useEffect(() => {
-    // Remove empty filters
+    // Remove empty filters and handle "all" value
     const activeFilters = Object.entries(filters).reduce((acc, [key, value]) => {
-      if (value) {
+      if (value && value !== "all") {
         acc[key] = key === 'project_id' || key === 'owner_id' 
           ? parseInt(value, 10) 
           : value;

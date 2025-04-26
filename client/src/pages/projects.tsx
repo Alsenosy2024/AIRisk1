@@ -371,7 +371,7 @@ export default function ProjectsPage() {
                   </p>
                 </CardContent>
                 <CardFooter className="pt-1 pb-4 flex justify-between items-center">
-                  <Link to={`/risks?projectId=${project.id}`} className="w-full">
+                  <Link to={`/risk-register?projectId=${project.id}`} className="w-full">
                     <div className="flex items-center justify-between w-full">
                       <div className="flex items-center space-x-4 text-sm text-blue-600 hover:text-blue-800 transition-colors">
                         <div className="flex items-center">

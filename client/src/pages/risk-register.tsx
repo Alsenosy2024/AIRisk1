@@ -31,6 +31,9 @@ export default function RiskRegister() {
     
     if (projectId) {
       setFilters(prev => ({ ...prev, project_id: parseInt(projectId, 10) }));
+    } else {
+      // Reset to empty filters if no projectId is specified
+      setFilters({});
     }
   }, [location]);
 
