@@ -5,6 +5,7 @@ import type { InsertRisk, Risk, RISK_CATEGORIES } from "@shared/schema";
 // If OPENAI_API_KEY is not set, the client will throw an error when attempting API calls
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
+  // Do not set organization header as it can cause authentication issues
   dangerouslyAllowBrowser: false
 });
 

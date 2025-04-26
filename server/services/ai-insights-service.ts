@@ -38,6 +38,7 @@ function createOpenAIClient(): OpenAI {
   
   return new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
+    // Remove organization header to avoid authentication issues
     dangerouslyAllowBrowser: false
   });
 }
