@@ -19,7 +19,7 @@ import { Risk } from "@shared/schema";
 export default function RiskRegister() {
   const [sidebarVisible, setSidebarVisible] = useState(true);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [filters, setFilters] = useState({});
+  const [filters, setFilters] = useState<{project_id?: number, category?: string, severity?: string, status?: string, owner_id?: number}>({});
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [location] = useLocation();
@@ -50,7 +50,7 @@ export default function RiskRegister() {
     setSidebarVisible(!sidebarVisible);
   };
 
-  const handleFilterChange = (newFilters: any) => {
+  const handleFilterChange = (newFilters: {project_id?: number, category?: string, severity?: string, status?: string, owner_id?: number}) => {
     setFilters(newFilters);
   };
 

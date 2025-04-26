@@ -16,18 +16,27 @@ import {
 import { RISK_CATEGORIES, RISK_SEVERITY, RISK_STATUS } from "@shared/schema";
 import { Search, FilterX } from "lucide-react";
 
+type FilterType = {
+  project_id?: number;
+  category?: string;
+  severity?: string;
+  status?: string;
+  owner_id?: number;
+};
+
 interface RiskFiltersProps {
-  onFilterChange: (filters: any) => void;
+  onFilterChange: (filters: FilterType) => void;
+  initialFilters?: FilterType;
 }
 
-export function RiskFilters({ onFilterChange }: RiskFiltersProps) {
+export function RiskFilters({ onFilterChange, initialFilters }: RiskFiltersProps) {
   const [filters, setFilters] = useState({
     search: "",
-    project_id: "",
-    owner_id: "",
-    category: "",
-    severity: "",
-    status: "",
+    project_id: initialFilters?.project_id ? initialFilters.project_id.toString() : "",
+    owner_id: initialFilters?.owner_id ? initialFilters.owner_id.toString() : "",
+    category: initialFilters?.category || "",
+    severity: initialFilters?.severity || "",
+    status: initialFilters?.status || "",
   });
 
   // Fetch projects for filter dropdown
