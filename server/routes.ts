@@ -436,6 +436,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Alias for risk-suggestions to match frontend calls
+  app.post("/api/ai/risk-suggestions", requireAuth, async (req, res) => {
+    try {
+      const { projectDescription, industry } = req.body;
+      
+      if (!projectDescription) {
+        return res.status(400).json({ message: "Project description is required" });
+      }
+      
+      const risks = await generateRiskSuggestions(projectDescription, industry);
+      
+      res.status(200).json(risks);
+    } catch (error) {
+      console.error("Error generating risk suggestions:", error);
+      const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
+      res.status(500).json({ message: "Failed to generate risks", error: errorMessage });
+    }
+  });
+  
   app.post("/api/ai/generate-mitigation", requireAuth, async (req, res) => {
     try {
       const { risk } = req.body;
