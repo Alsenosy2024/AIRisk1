@@ -32,10 +32,10 @@ import { Bot } from "lucide-react";
 const riskFormSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters"),
   description: z.string().min(10, "Description must be at least 10 characters"),
-  category: z.enum(RISK_CATEGORIES as [string, ...string[]]),
+  category: z.enum(RISK_CATEGORIES as unknown as [string, ...string[]]),
   probability: z.coerce.number().int().min(1).max(5),
   impact: z.coerce.number().int().min(1).max(5),
-  status: z.enum(RISK_STATUS as [string, ...string[]]),
+  status: z.enum(RISK_STATUS as unknown as [string, ...string[]]),
   mitigation_plan: z.string().optional(),
   owner_id: z.number().nullable().optional(),
   project_id: z.number().nullable().optional(),
@@ -56,14 +56,29 @@ export function RiskForm({ risk, initialProjectId, onSuccess, onCancel }: RiskFo
   const queryClient = useQueryClient();
   const [isGeneratingMitigation, setIsGeneratingMitigation] = useState(false);
 
+  // Define User type for proper typing
+  interface User {
+    id: number;
+    name: string;
+    username: string;
+    role: string;
+  }
+
+  // Define Project type for proper typing
+  interface Project {
+    id: number;
+    name: string;
+    description: string;
+  }
+
   // Fetch users for owner assignment
-  const { data: users = [] } = useQuery({
+  const { data: users = [] } = useQuery<User[]>({
     queryKey: ["/api/users"],
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
   // Fetch projects for project assignment
-  const { data: projects = [] } = useQuery({
+  const { data: projects = [] } = useQuery<Project[]>({
     queryKey: ["/api/projects"],
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
