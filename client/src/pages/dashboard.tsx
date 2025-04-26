@@ -212,45 +212,90 @@ export default function Dashboard() {
             <div className="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2 xl:grid-cols-3">
               {/* Risk Heatmap Widget */}
               <div className="lg:col-span-1 xl:col-span-1">
-                <div className="dashboard-card h-full relative">
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-50/60 to-indigo-50/30"></div>
-                  <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-blue opacity-5 rounded-full blur-2xl -mr-5 -mt-5"></div>
+                <div className="dashboard-card h-full smart-border">
                   <div className="relative">
-                    <h3 className="text-lg font-semibold mb-4 text-gray-800 flex items-center">
-                      <span className="h-5 w-1 bg-gradient-blue rounded-full mr-2"></span>
+                    <h3 className="text-lg font-semibold mb-4 flex items-center">
+                      <div className="ai-icon-container mr-2">
+                        <svg 
+                          xmlns="http://www.w3.org/2000/svg" 
+                          viewBox="0 0 24 24" 
+                          fill="none" 
+                          stroke="currentColor" 
+                          strokeWidth="2" 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round" 
+                          className="w-5 h-5 text-primary"
+                        >
+                          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                          <line x1="3" y1="9" x2="21" y2="9"></line>
+                          <line x1="3" y1="15" x2="21" y2="15"></line>
+                          <line x1="9" y1="3" x2="9" y2="21"></line>
+                          <line x1="15" y1="3" x2="15" y2="21"></line>
+                        </svg>
+                      </div>
                       Risk Heatmap
                     </h3>
-                    <RiskHeatmap heatmapData={dashboardData.heatmapData} />
+                    <div className="chart-container">
+                      <RiskHeatmap heatmapData={dashboardData.heatmapData} />
+                    </div>
                   </div>
                 </div>
               </div>
 
               {/* Risks by Category Widget */}
               <div className="lg:col-span-1 xl:col-span-1">
-                <div className="dashboard-card h-full relative">
-                  <div className="absolute inset-0 bg-gradient-to-br from-amber-50/60 to-orange-50/30"></div>
-                  <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-amber opacity-5 rounded-full blur-2xl -mr-5 -mt-5"></div>
+                <div className="dashboard-card h-full smart-border">
                   <div className="relative">
-                    <h3 className="text-lg font-semibold mb-4 text-gray-800 flex items-center">
-                      <span className="h-5 w-1 bg-gradient-amber rounded-full mr-2"></span>
+                    <h3 className="text-lg font-semibold mb-4 flex items-center">
+                      <div className="ai-icon-container mr-2">
+                        <svg 
+                          xmlns="http://www.w3.org/2000/svg" 
+                          viewBox="0 0 24 24" 
+                          fill="none" 
+                          stroke="currentColor" 
+                          strokeWidth="2" 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round" 
+                          className="w-5 h-5 text-primary"
+                        >
+                          <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path>
+                          <line x1="4" y1="22" x2="4" y2="15"></line>
+                        </svg>
+                      </div>
                       Risk Categories
                     </h3>
-                    <RisksByCategory categories={dashboardData.risksByCategory} />
+                    <div className="chart-container">
+                      <RisksByCategory categories={dashboardData.risksByCategory} />
+                    </div>
                   </div>
                 </div>
               </div>
 
               {/* Risk Trend Widget */}
               <div className="lg:col-span-2 xl:col-span-1">
-                <div className="dashboard-card h-full relative">
-                  <div className="absolute inset-0 bg-gradient-to-br from-green-50/60 to-teal-50/30"></div>
-                  <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-green opacity-5 rounded-full blur-2xl -mr-5 -mt-5"></div>
+                <div className="dashboard-card h-full smart-border">
                   <div className="relative">
-                    <h3 className="text-lg font-semibold mb-4 text-gray-800 flex items-center">
-                      <span className="h-5 w-1 bg-gradient-green rounded-full mr-2"></span>
+                    <h3 className="text-lg font-semibold mb-4 flex items-center">
+                      <div className="ai-icon-container mr-2">
+                        <svg 
+                          xmlns="http://www.w3.org/2000/svg" 
+                          viewBox="0 0 24 24" 
+                          fill="none" 
+                          stroke="currentColor" 
+                          strokeWidth="2" 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round" 
+                          className="w-5 h-5 text-primary"
+                        >
+                          <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                          <polyline points="17 6 23 6 23 12"></polyline>
+                        </svg>
+                      </div>
                       Risk Trends
                     </h3>
-                    <RiskTrend trendData={dashboardData.riskTrend} />
+                    <div className="chart-container">
+                      <RiskTrend trendData={dashboardData.riskTrend} />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -313,18 +358,31 @@ export default function Dashboard() {
           {/* Top Risks Table */}
           {dashboardData?.topRisks && (
             <div className="mt-8">
-              <div className="dashboard-card relative">
-                <div className="absolute inset-0 bg-gradient-to-br from-gray-50 to-gray-100/60 opacity-80"></div>
-                <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-blue opacity-5 rounded-full blur-3xl -mr-10 -mt-10"></div>
+              <div className="dashboard-card smart-border">
                 <div className="relative">
-                  <h3 className="text-lg font-semibold mb-4 text-gray-800 flex items-center">
-                    <span className="h-5 w-1 bg-gradient-to-b from-purple-500 to-blue-500 rounded-full mr-2"></span>
+                  <h3 className="text-lg font-semibold mb-4 flex items-center">
+                    <div className="ai-icon-container mr-2">
+                      <svg 
+                        xmlns="http://www.w3.org/2000/svg" 
+                        viewBox="0 0 24 24" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        strokeWidth="2" 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                        className="w-5 h-5 text-primary"
+                      >
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                      </svg>
+                    </div>
                     Top Risks
                   </h3>
-                  <TopRisksTable 
-                    risks={dashboardData.topRisks} 
-                    onRefresh={() => refetch()} 
-                  />
+                  <div className="rounded-lg overflow-hidden border border-border/30 bg-card/30 backdrop-blur-sm">
+                    <TopRisksTable 
+                      risks={dashboardData.topRisks} 
+                      onRefresh={() => refetch()} 
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -332,39 +390,53 @@ export default function Dashboard() {
 
           {/* AI Dashboard Intelligence Section */}
           <div className="mt-8">
-            <div className="dashboard-card relative overflow-hidden border border-violet-100/60">
-              <div className="absolute inset-0 bg-gradient-to-br from-violet-50/50 to-indigo-50/50 opacity-70"></div>
-              <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-purple opacity-5 blur-3xl rounded-full -mr-20 -mt-20"></div>
-              <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-blue opacity-5 blur-3xl rounded-full -ml-20 -mb-20"></div>
+            <div className="dashboard-card ai-gradient-bg">
               <div className="relative">
-              {/* AI Dashboard Insights - New Component */}
-              {isAiInsightsError ? (
-                <div className="p-6 text-center">
-                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-red-100 text-red-500 mb-4">
-                    <svg className="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                <h3 className="text-lg font-semibold mb-4 flex items-center">
+                  <div className="ai-icon-container mr-2">
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeWidth="2" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      className="w-5 h-5 text-primary"
+                    >
+                      <path d="M12 2a1 1 0 0 1 .996.936l.018.153L13 4h7a1 1 0 0 1 1 1l-.003.082a1 1 0 0 1-.082.825l-.067.093-.068.088-6.4 8V21a1 1 0 0 1-.836.986L13.5 22h-3a1 1 0 0 1-.986-.836L9.5 21v-7l-6.4-8a1 1 0 0 1-.092-.175L3 5.82a1 1 0 0 1-.09-.743L3 5a1 1 0 0 1 .984-.917L4 4h7l-.018-1a1 1 0 0 1 1.85-.53l.058.089.053.108L13 3l-.018 1H4l6.4 8v7h3v-7l6.4-8H13l.018-1L13 3l-.018-1z"></path>
                     </svg>
                   </div>
-                  <h3 className="text-lg font-medium mb-2">AI Insights Unavailable</h3>
-                  <p className="text-gray-600 mb-4">We couldn't load the AI-powered insights at this time.</p>
-                  <button
-                    onClick={() => refetchAiInsights()}
-                    className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                  >
-                    <svg className="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
-                    </svg>
-                    Try Again
-                  </button>
-                </div>
-              ) : (
-                <AIDashboardInsights
-                  isLoading={!aiInsightsData}
-                  keyInsights={aiInsightsData?.keyInsights || []}
-                  actionItems={aiInsightsData?.actionItems || []}
-                  onRefresh={() => refetchAiInsights()}
-                />
-              )}
+                  AI-Powered Risk Analysis
+                </h3>
+                {/* AI Dashboard Insights - New Component */}
+                {isAiInsightsError ? (
+                  <div className="p-6 text-center bg-card/30 rounded-lg backdrop-blur-sm border border-border/20">
+                    <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-red-100 text-red-500 mb-4 shadow-sm">
+                      <svg className="w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                      </svg>
+                    </div>
+                    <h3 className="text-lg font-medium mb-2">AI Insights Unavailable</h3>
+                    <p className="text-muted-foreground mb-4">We couldn't load the AI-powered insights at this time.</p>
+                    <button
+                      onClick={() => refetchAiInsights()}
+                      className="button-modern-primary"
+                    >
+                      <svg className="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+                      </svg>
+                      Try Again
+                    </button>
+                  </div>
+                ) : (
+                  <AIDashboardInsights
+                    isLoading={!aiInsightsData}
+                    keyInsights={aiInsightsData?.keyInsights || []}
+                    actionItems={aiInsightsData?.actionItems || []}
+                    onRefresh={() => refetchAiInsights()}
+                  />
+                )}
               </div>
             </div>
           </div>
