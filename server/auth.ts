@@ -1,5 +1,6 @@
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
+import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { Express, Request, Response, NextFunction } from "express";
 import session from "express-session";
 import { storage } from "./storage";
@@ -54,6 +55,75 @@ export function setupAuth(app: Express) {
       }
     })
   );
+  
+  // Configure Google Strategy for OAuth authentication
+  if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+    console.log("Setting up Google OAuth strategy");
+    passport.use(
+      new GoogleStrategy(
+        {
+          clientID: process.env.GOOGLE_CLIENT_ID,
+          clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+          callbackURL: "/api/auth/google/callback",
+          scope: ["profile", "email"]
+        },
+        async (accessToken, refreshToken, profile, done) => {
+          try {
+            console.log("Google auth callback. Profile:", profile.id, profile.displayName);
+            
+            // Check if user exists with Google ID
+            let user = await storage.getUserByGoogleId(profile.id);
+            
+            if (!user) {
+              // Check if user exists with the same email
+              if (profile.emails && profile.emails.length > 0) {
+                const email = profile.emails[0].value;
+                const existingUser = await storage.getUserByEmail(email);
+                
+                if (existingUser) {
+                  // Update existing user with Google ID
+                  console.log("Linking Google account to existing user:", existingUser.id);
+                  user = await storage.updateUserGoogleId(existingUser.id, profile.id);
+                } else {
+                  // Create new user with Google info
+                  console.log("Creating new user from Google profile");
+                  
+                  // Generate unique username from email or name
+                  let username = email?.split('@')[0] || profile.displayName?.replace(/\s+/g, '') || '';
+                  
+                  // Check if username exists and append random numbers if needed
+                  const existingUsername = await storage.getUserByUsername(username);
+                  if (existingUsername) {
+                    username = `${username}${Math.floor(Math.random() * 1000)}`;
+                  }
+                  
+                  // Create new user
+                  user = await storage.createUser({
+                    username,
+                    name: profile.displayName || "Google User",
+                    email: email,
+                    google_id: profile.id,
+                    role: "Viewer" // Default role
+                  });
+                }
+              } else {
+                return done(new Error("Google profile didn't provide email information"));
+              }
+            }
+            
+            // Don't send password to client
+            const { password: _, ...userWithoutPassword } = user;
+            return done(null, userWithoutPassword as Express.User);
+          } catch (error) {
+            console.error("Error in Google auth callback:", error);
+            return done(error);
+          }
+        }
+      )
+    );
+  } else {
+    console.warn("Google OAuth credentials missing, Google login will not be available");
+  }
 
   // Serialize user to session
   passport.serializeUser((user, done) => {

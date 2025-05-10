@@ -6,10 +6,11 @@ import { z } from "zod";
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
-  password: text("password"), // Making optional for Firebase users
+  password: text("password"), // Making optional for OAuth users
   name: text("name").notNull(),
   email: text("email").notNull(),
   firebase_uid: text("firebase_uid").unique(), // Added for Firebase auth
+  google_id: text("google_id").unique(), // Added for Google OAuth
   role: text("role", { enum: ["Admin", "Risk Manager", "Project Manager", "Viewer"] }).notNull().default("Viewer"),
   created_at: timestamp("created_at").defaultNow().notNull(),
 });
@@ -101,6 +102,7 @@ export const insertUserSchema = createInsertSchema(users).pick({
   name: true, 
   email: true,
   firebase_uid: true,
+  google_id: true,
   role: true
 });
 
