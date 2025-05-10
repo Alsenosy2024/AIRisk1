@@ -30,6 +30,7 @@ import {
   AlertTitle,
 } from "@/components/ui/alert";
 import { Loader2, ExternalLink } from "lucide-react";
+import { FcGoogle } from "react-icons/fc";
 
 // Register form schema
 const registerSchema = z.object({
@@ -197,7 +198,7 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
           )}
         </Form>
       </CardContent>
-      <CardFooter>
+      <CardFooter className="flex flex-col gap-4">
         <Button
           type="submit"
           form="register-form"
@@ -211,6 +212,21 @@ export function RegisterForm({ onSuccess }: RegisterFormProps) {
           ) : (
             "Create Account"
           )}
+        </Button>
+        
+        <div className="relative flex items-center justify-center my-2">
+          <div className="absolute border-t border-gray-300 w-full"></div>
+          <span className="relative px-2 bg-white text-sm text-gray-500">or</span>
+        </div>
+        
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full flex items-center justify-center gap-2 border-gray-300 hover:bg-gray-50"
+          onClick={() => window.location.href = "/api/auth/google"}
+        >
+          <FcGoogle className="h-5 w-5" />
+          <span>Sign up with Google</span>
         </Button>
       </CardFooter>
     </Card>

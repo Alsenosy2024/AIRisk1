@@ -24,6 +24,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Loader2 } from "lucide-react";
+import { FcGoogle } from "react-icons/fc";
 import { ForgotPasswordForm } from "./forgot-password-form";
 
 // Login form schema
@@ -136,6 +137,22 @@ export function LoginForm({ onSuccess }: LoginFormProps) {
             "Sign In"
           )}
         </Button>
+        
+        <div className="relative flex items-center justify-center my-2">
+          <div className="absolute border-t border-gray-300 w-full"></div>
+          <span className="relative px-2 bg-white text-sm text-gray-500">or</span>
+        </div>
+        
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full flex items-center justify-center gap-2 border-gray-300 hover:bg-gray-50"
+          onClick={() => window.location.href = "/api/auth/google"}
+        >
+          <FcGoogle className="h-5 w-5" />
+          <span>Sign in with Google</span>
+        </Button>
+        
         <Button
           variant="link"
           className="px-0 text-sm"

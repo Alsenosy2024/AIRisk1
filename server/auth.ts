@@ -281,6 +281,20 @@ export function setupAuth(app: Express) {
     });
   });
 
+  // Google OAuth login route
+  app.get("/api/auth/google", 
+    passport.authenticate("google", { scope: ["profile", "email"] })
+  );
+
+  // Google OAuth callback route
+  app.get("/api/auth/google/callback", 
+    passport.authenticate("google", { failureRedirect: "/auth" }),
+    (req, res) => {
+      // Successful authentication, redirect home.
+      res.redirect("/");
+    }
+  );
+
   // Get current user route
   app.get("/api/user", (req, res) => {
     if (!req.isAuthenticated()) {

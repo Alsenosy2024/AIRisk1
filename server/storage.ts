@@ -212,6 +212,21 @@ export class MemStorage implements IStorage {
     return { ...updatedUser, password: "[REDACTED]" } as User;
   }
   
+  async updateUserGoogleId(userId: number, googleId: string): Promise<User> {
+    const user = this.users.get(userId);
+    if (!user) {
+      throw new Error(`User with ID ${userId} not found`);
+    }
+    
+    const updatedUser = {
+      ...user,
+      google_id: googleId
+    };
+    
+    this.users.set(userId, updatedUser);
+    return { ...updatedUser, password: "[REDACTED]" } as User;
+  }
+  
   async updateUserPassword(userId: number, hashedPassword: string): Promise<User | undefined> {
     const user = this.users.get(userId);
     if (!user) {
