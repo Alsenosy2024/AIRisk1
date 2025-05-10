@@ -7,8 +7,17 @@ import { RegisterForm } from "@/components/auth/register-form";
 
 export default function AuthPage() {
   const [activeTab, setActiveTab] = useState<"login" | "register">("login");
-  const [, navigate] = useLocation();
+  const [location, navigate] = useLocation();
   const { user } = useAuth();
+
+  // Check URL for tab parameter on initial load
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const tabParam = searchParams.get('tab');
+    if (tabParam === 'register') {
+      setActiveTab("register");
+    }
+  }, []);
 
   // Redirect if user is already logged in
   useEffect(() => {
