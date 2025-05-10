@@ -62,6 +62,33 @@ export class DatabaseStorage implements IStorage {
       createTableIfMissing: true 
     });
   }
+  
+  // Project operations required by IStorage interface
+  async updateProject(id: number, updates: Partial<InsertProject>): Promise<Project | undefined> {
+    try {
+      const [project] = await db
+        .update(projects)
+        .set({ ...updates, updated_at: new Date() })
+        .where(eq(projects.id, id))
+        .returning();
+      return project;
+    } catch (error) {
+      console.error("Error updating project:", error);
+      return undefined;
+    }
+  }
+  
+  async deleteProject(id: number): Promise<boolean> {
+    try {
+      const result = await db
+        .delete(projects)
+        .where(eq(projects.id, id));
+      return true;
+    } catch (error) {
+      console.error("Error deleting project:", error);
+      return false;
+    }
+  }
 
   // User operations
   async getUser(id: number): Promise<User | undefined> {

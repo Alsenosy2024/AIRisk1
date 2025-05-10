@@ -245,7 +245,7 @@ export function setupAuth(app: Express) {
   app.post("/api/login", (req, res, next) => {
     console.log("Login attempt with data:", JSON.stringify(req.body, null, 2));
     
-    passport.authenticate("local", (err, user, info) => {
+    passport.authenticate("local", (err: any, user: Express.User | false, info: { message?: string }) => {
       if (err) {
         console.error("Login authentication error:", err);
         return next(err);
