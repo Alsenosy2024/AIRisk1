@@ -60,8 +60,10 @@ export interface IStorage {
   getUserByUsername(username: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   getUserByFirebaseUid(firebaseUid: string): Promise<User | undefined>;
+  getUserByGoogleId(googleId: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUserFirebaseUid(userId: number, firebaseUid: string): Promise<User>;
+  updateUserGoogleId(userId: number, googleId: string): Promise<User>;
   updateUserPassword(userId: number, hashedPassword: string): Promise<User | undefined>;
   
   // Authentication operations
@@ -168,6 +170,12 @@ export class MemStorage implements IStorage {
   async getUserByFirebaseUid(firebaseUid: string): Promise<User | undefined> {
     return Array.from(this.users.values()).find(
       (user) => user.firebase_uid === firebaseUid
+    );
+  }
+  
+  async getUserByGoogleId(googleId: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(
+      (user) => user.google_id === googleId
     );
   }
   

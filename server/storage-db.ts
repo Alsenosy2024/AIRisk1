@@ -83,11 +83,25 @@ export class DatabaseStorage implements IStorage {
     const [user] = await db.select().from(users).where(eq(users.firebase_uid, firebaseUid));
     return user;
   }
+  
+  async getUserByGoogleId(googleId: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.google_id, googleId));
+    return user;
+  }
 
   async updateUserFirebaseUid(userId: number, firebaseUid: string): Promise<User> {
     const [user] = await db
       .update(users)
       .set({ firebase_uid: firebaseUid })
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
+  }
+  
+  async updateUserGoogleId(userId: number, googleId: string): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ google_id: googleId })
       .where(eq(users.id, userId))
       .returning();
     return user;
