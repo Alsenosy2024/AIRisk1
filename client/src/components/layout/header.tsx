@@ -27,7 +27,7 @@ interface HeaderProps {
 }
 
 export function Header({ toggleSidebar }: HeaderProps) {
-  const [location] = useLocation();
+  const [location, navigate] = useLocation();
   const { user, logoutMutation } = useAuth();
   
   // Map routes to page titles
@@ -59,24 +59,47 @@ export function Header({ toggleSidebar }: HeaderProps) {
             </h1>
 
             {/* Search Bar for Larger Screens */}
-            <div className="hidden lg:flex items-center max-w-md w-full">
-              <div className="relative w-full">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                  <Search className="h-4 w-4 text-gray-400" />
+            {user && (
+              <div className="hidden lg:flex items-center max-w-md w-full">
+                <div className="relative w-full">
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <Search className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <Input 
+                    type="search" 
+                    placeholder="Search risks, projects..." 
+                    className="pl-10 py-2 bg-gray-50 border-gray-100 text-sm rounded-full w-full focus-visible:ring-blue-500"
+                  />
                 </div>
-                <Input 
-                  type="search" 
-                  placeholder="Search risks, projects..." 
-                  className="pl-10 py-2 bg-gray-50 border-gray-100 text-sm rounded-full w-full focus-visible:ring-blue-500"
-                />
               </div>
-            </div>
+            )}
           </div>
           
           <div className="flex items-center space-x-1 sm:space-x-3">
-            <HelpButton />
-            <NotificationBell />
-            <UserMenu user={user} onLogout={() => logoutMutation.mutate()} />
+            {user ? (
+              <>
+                <HelpButton />
+                <NotificationBell />
+                <UserMenu user={user} onLogout={() => logoutMutation.mutate()} />
+              </>
+            ) : (
+              <>
+                <Button
+                  variant="ghost"
+                  className="text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                  onClick={() => navigate('/auth')}
+                >
+                  Log In
+                </Button>
+                <Button
+                  variant="default"
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                  onClick={() => navigate('/auth?tab=register')}
+                >
+                  Sign Up
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </div>
