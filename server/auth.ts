@@ -64,7 +64,7 @@ export function setupAuth(app: Express) {
         {
           clientID: process.env.GOOGLE_CLIENT_ID,
           clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-          callbackURL: "/api/auth/google/callback",
+          callbackURL: "https://002e5d43-a381-4918-add1-5924ea8b7b98-00-cpsta0jzi56w.picard.replit.dev/api/auth/google/callback",
           scope: ["profile", "email"]
         },
         async (accessToken, refreshToken, profile, done) => {

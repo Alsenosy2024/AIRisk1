@@ -68,7 +68,7 @@ export class DatabaseStorage implements IStorage {
     try {
       const [project] = await db
         .update(projects)
-        .set({ ...updates, updated_at: new Date() })
+        .set({ ...updates })
         .where(eq(projects.id, id))
         .returning();
       return project;
