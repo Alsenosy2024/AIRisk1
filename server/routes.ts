@@ -421,6 +421,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Test OpenAI API endpoint
+  app.post("/api/test-openai", async (req, res) => {
+    try {
+      const apiKey = process.env.OPENAI_API_KEY;
+      console.log(`Testing OpenAI with key: ${apiKey?.substring(0, 12)}...${apiKey?.substring(apiKey.length - 4)}`);
+      
+      const openai = new OpenAI({
+        apiKey: apiKey
+      });
+      
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [{ role: "user", content: "Say hello" }],
+        max_tokens: 10
+      });
+      
+      res.json({ 
+        success: true, 
+        response: response.choices[0].message.content,
+        keyInfo: `Key: ${apiKey?.substring(0, 12)}...${apiKey?.substring(apiKey.length - 4)}`
+      });
+    } catch (error: any) {
+      console.error('OpenAI test error:', error);
+      res.json({ 
+        success: false, 
+        error: error.message,
+        keyInfo: `Key: ${process.env.OPENAI_API_KEY?.substring(0, 12)}...${process.env.OPENAI_API_KEY?.substring(process.env.OPENAI_API_KEY.length - 4)}`
+      });
+    }
+  });
+
   // AI routes
   app.post("/api/ai/generate-risks", async (req, res) => {
     try {

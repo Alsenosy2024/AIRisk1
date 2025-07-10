@@ -58,8 +58,12 @@ An intelligent risk management platform that helps organizations track, analyze,
   - Direct access to all features without user login or permissions
   - All API endpoints including AI features now accessible without authentication
   - Updated frontend to remove authentication-dependent UI elements
-- Verified OpenAI integration exists with API key configured for real AI capabilities
-- Identified OpenAI API key validation issue requiring user update
+- **OpenAI API Key Issues**
+  - User provided N8N OpenAI API key but validation fails with 401 errors
+  - Key format appears correct (sk-proj-...) but OpenAI rejects as invalid
+  - All AI features remain non-functional due to authentication failure
+  - Application gracefully falls back to basic functionality without AI
+  - **CRITICAL**: User needs to verify/replace OpenAI API key for AI features to work
 
 ## User Preferences
 - Simple, everyday language for communication
