@@ -23,14 +23,17 @@ export function Sidebar() {
   const user = { name: "Default User", email: "user@example.com" };
 
   return (
-    <div className="hidden md:flex flex-col w-64 bg-gray-900 text-white transition-all duration-300">
+    <div className="hidden md:flex flex-col w-72 bg-gradient-to-b from-gray-900 via-gray-900 to-gray-800 text-white transition-all duration-300 shadow-2xl">
       {/* App Logo & Title */}
-      <div className="p-5 flex items-center border-b border-gray-800">
+      <div className="p-6 flex items-center border-b border-gray-700/50">
         <div className="flex items-center space-x-3">
-          <div className="bg-blue-600 p-2 rounded-lg">
+          <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-3 rounded-xl shadow-lg">
             <ShieldAlert className="h-6 w-6 text-white" />
           </div>
-          <span className="text-xl font-semibold tracking-tight">RiskAI Pro</span>
+          <div className="flex flex-col">
+            <span className="text-xl font-bold tracking-tight">RiskAI Pro</span>
+            <span className="text-xs text-blue-200 font-medium">Enterprise Edition</span>
+          </div>
         </div>
       </div>
       
@@ -38,12 +41,12 @@ export function Sidebar() {
       <>
         {/* Navigation for all users */}
           <div className="flex-1 overflow-y-auto py-6">
-            <div className="px-3 mb-6">
-              <h3 className="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                Main
+            <div className="px-4 mb-6">
+              <h3 className="px-4 text-xs font-bold text-gray-300 uppercase tracking-wider">
+                Analytics
               </h3>
             </div>
-            <nav className="px-3 space-y-1">
+            <nav className="px-4 space-y-2">
               <NavItem
                 href="/"
                 icon={<LayoutDashboard className="mr-3 h-5 w-5" />}
@@ -82,12 +85,12 @@ export function Sidebar() {
               />
             </nav>
             
-            <div className="px-3 mt-8 mb-6">
-              <h3 className="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                Settings
+            <div className="px-4 mt-8 mb-6">
+              <h3 className="px-4 text-xs font-bold text-gray-300 uppercase tracking-wider">
+                Configuration
               </h3>
             </div>
-            <nav className="px-3 space-y-1">
+            <nav className="px-4 space-y-2">
               <NavItem
                 href="/settings"
                 icon={<Settings className="mr-3 h-5 w-5" />}
@@ -97,20 +100,25 @@ export function Sidebar() {
             </nav>
           </div>
           
-          {/* User Profile for authenticated users */}
-          <div className="p-4 border-t border-gray-800 bg-gray-800 bg-opacity-40">
+          {/* User Profile Section */}
+          <div className="p-5 border-t border-gray-700/50 bg-gradient-to-r from-gray-800/50 to-gray-700/30">
             <div className="flex items-center justify-between">
               <div className="flex items-center">
-                <Avatar className="h-9 w-9 mr-3 border-2 border-blue-500">
+                <Avatar className="h-11 w-11 mr-4 border-2 border-blue-400 shadow-lg">
                   <AvatarImage src="" />
-                  <AvatarFallback className="bg-blue-600 text-white">{user?.name?.charAt(0) || "U"}</AvatarFallback>
+                  <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-bold">
+                    {user?.name?.charAt(0) || "U"}
+                  </AvatarFallback>
                 </Avatar>
                 <div>
-                  <p className="text-sm font-medium text-white">{user?.name || "User"}</p>
-                  <p className="text-xs text-gray-400">{user?.role || "Guest"}</p>
+                  <p className="text-sm font-semibold text-white">{user?.name || "Demo User"}</p>
+                  <p className="text-xs text-blue-200 font-medium">Risk Manager</p>
                 </div>
               </div>
-              {/* Logout removed - no authentication */}
+              <div className="flex items-center space-x-1">
+                <div className="h-2 w-2 bg-green-400 rounded-full animate-pulse"></div>
+                <span className="text-xs text-green-400 font-medium">Online</span>
+              </div>
             </div>
           </div>
         </>
@@ -127,7 +135,6 @@ interface NavItemProps {
 }
 
 function NavItem({ href, icon, label, isActive }: NavItemProps) {
-  // Use Link from wouter instead of window.location for client-side routing
   const [_, navigate] = useLocation();
 
   const handleClick = () => {
@@ -137,16 +144,29 @@ function NavItem({ href, icon, label, isActive }: NavItemProps) {
   return (
     <div
       className={cn(
-        "flex items-center px-4 py-3 rounded-md cursor-pointer transition-colors group",
+        "flex items-center px-4 py-3.5 rounded-xl cursor-pointer transition-all duration-300 group relative overflow-hidden",
         isActive
-          ? "text-white bg-blue-600 bg-opacity-90"
-          : "text-gray-300 hover:bg-gray-800 hover:text-white"
+          ? "text-white bg-gradient-to-r from-blue-600 to-blue-500 shadow-lg shadow-blue-500/25 transform scale-[1.02]"
+          : "text-gray-300 hover:bg-gray-700/50 hover:text-white hover:transform hover:scale-105"
       )}
       onClick={handleClick}
     >
-      {icon}
-      <span className="flex-1">{label}</span>
-      {isActive && <ChevronRight className="h-4 w-4 text-white opacity-70" />}
+      <div className={cn(
+        "transition-all duration-300",
+        isActive ? "text-white" : "text-gray-400 group-hover:text-blue-400"
+      )}>
+        {icon}
+      </div>
+      <span className="flex-1 font-medium">{label}</span>
+      {isActive && (
+        <div className="flex items-center">
+          <div className="h-2 w-2 bg-white rounded-full mr-2 animate-pulse"></div>
+          <ChevronRight className="h-4 w-4 text-white/80" />
+        </div>
+      )}
+      {isActive && (
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-transparent pointer-events-none"></div>
+      )}
     </div>
   );
 }

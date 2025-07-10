@@ -14,11 +14,11 @@ import { RISK_CATEGORIES, insertRiskSchema, insertRiskEventSchema, insertInsight
 import { setupAuth } from "./auth";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Set up authentication with Passport
-  const { requireAuth, requireRole } = setupAuth(app);
+  // Authentication removed - direct access granted
+  // const { requireAuth, requireRole } = setupAuth(app);
   
   // User routes
-  app.get("/api/users", requireAuth, async (req, res) => {
+  app.get("/api/users", async (req, res) => {
     try {
       const users = await Promise.all(
         Array.from({ length: 6 }, (_, i) => storage.getUser(i + 1))
@@ -39,7 +39,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Projects routes
-  app.get("/api/projects", requireAuth, async (_, res) => {
+  app.get("/api/projects", async (_, res) => {
     try {
       const projects = await storage.getAllProjects();
       res.status(200).json(projects);
@@ -49,7 +49,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/projects/:id", requireAuth, async (req, res) => {
+  app.get("/api/projects/:id", async (req, res) => {
     try {
       const projectId = parseInt(req.params.id);
       const project = await storage.getProject(projectId);
@@ -65,7 +65,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/projects", requireAuth, requireRole(["Admin", "Project Manager"]), async (req, res) => {
+  app.post("/api/projects", async (req, res) => {
     try {
       // Validate request body against schema
       const result = insertProjectSchema.safeParse(req.body);
@@ -77,10 +77,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Create new project
+      // Create new project - default user ID since auth removed
       const project = await storage.createProject({
         ...result.data,
-        created_by: req.user!.id
+        created_by: 1 // Default user ID
       });
       
       res.status(201).json(project);
@@ -90,7 +90,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/projects/:id", requireAuth, requireRole(["Admin", "Project Manager"]), async (req, res) => {
+  app.patch("/api/projects/:id", async (req, res) => {
     try {
       const projectId = parseInt(req.params.id);
       const project = await storage.getProject(projectId);
@@ -119,7 +119,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/projects/:id", requireAuth, requireRole(["Admin"]), async (req, res) => {
+  app.delete("/api/projects/:id", async (req, res) => {
     try {
       const projectId = parseInt(req.params.id);
       const project = await storage.getProject(projectId);
@@ -152,7 +152,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Risk routes
-  app.get("/api/risks", requireAuth, async (req, res) => {
+  app.get("/api/risks", async (req, res) => {
     try {
       let risks;
       
@@ -206,7 +206,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.get("/api/risks/:id", requireAuth, async (req, res) => {
+  app.get("/api/risks/:id", async (req, res) => {
     try {
       const riskId = parseInt(req.params.id);
       const risk = await storage.getRisk(riskId);
@@ -250,7 +250,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.post("/api/risks", requireAuth, async (req, res) => {
+  app.post("/api/risks", async (req, res) => {
     try {
       // Validate input
       const result = insertRiskSchema.safeParse(req.body);
@@ -259,9 +259,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid risk data", errors: result.error.format() });
       }
       
-      const userId = req.user!.id;
+      // Use default user ID (1) since auth is removed
+      const userId = 1;
       
-      // Set created_by to current user
+      // Set created_by to default user
       const riskData = { ...result.data, created_by: userId };
       
       const risk = await storage.createRisk(riskData);
@@ -281,7 +282,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.put("/api/risks/:id", requireAuth, requireRole(["Admin", "Risk Manager", "Project Manager"]), async (req, res) => {
+  app.put("/api/risks/:id", async (req, res) => {
     try {
       const riskId = parseInt(req.params.id);
       const existingRisk = await storage.getRisk(riskId);
@@ -290,7 +291,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Risk not found" });
       }
       
-      const userId = req.user!.id;
+      // Use default user ID (1) since auth is removed
+      const userId = 1;
       
       // Update risk
       const updatedRisk = await storage.updateRisk(riskId, req.body);
@@ -312,7 +314,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.delete("/api/risks/:id", requireAuth, requireRole(["Admin", "Risk Manager"]), async (req, res) => {
+  app.delete("/api/risks/:id", async (req, res) => {
     try {
       const riskId = parseInt(req.params.id);
       const existingRisk = await storage.getRisk(riskId);
@@ -336,7 +338,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Risk event routes
-  app.post("/api/risks/:id/events", requireAuth, async (req, res) => {
+  app.post("/api/risks/:id/events", async (req, res) => {
     try {
       const riskId = parseInt(req.params.id);
       const existingRisk = await storage.getRisk(riskId);
@@ -355,7 +357,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid event data", errors: result.error.format() });
       }
       
-      const userId = req.user!.id;
+      // Use default user ID (1) since auth is removed
+      const userId = 1;
       
       // Create event
       const event = await storage.createRiskEvent({
@@ -379,7 +382,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Dashboard routes
-  app.get("/api/dashboard", requireAuth, async (_, res) => {
+  app.get("/api/dashboard", async (_, res) => {
     try {
       const dashboardData = await storage.getRiskSummary();
       
@@ -391,7 +394,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Risk insights routes
-  app.get("/api/insights", requireAuth, async (_, res) => {
+  app.get("/api/insights", async (_, res) => {
     try {
       const insights = await storage.getAllInsights();
       
@@ -402,7 +405,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.post("/api/insights/:id/dismiss", requireAuth, requireRole(["Admin", "Risk Manager"]), async (req, res) => {
+  app.post("/api/insights/:id/dismiss", async (req, res) => {
     try {
       const insightId = parseInt(req.params.id);
       const updatedInsight = await storage.updateInsight(insightId, true);
@@ -419,7 +422,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // AI routes
-  app.post("/api/ai/generate-risks", requireAuth, async (req, res) => {
+  app.post("/api/ai/generate-risks", async (req, res) => {
     try {
       const { description, industry } = req.body;
       
@@ -437,7 +440,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Alias for risk-suggestions to match frontend calls
-  app.post("/api/ai/risk-suggestions", requireAuth, async (req, res) => {
+  app.post("/api/ai/risk-suggestions", async (req, res) => {
     try {
       const { projectDescription, industry } = req.body;
       
@@ -455,7 +458,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.post("/api/ai/generate-mitigation", requireAuth, async (req, res) => {
+  app.post("/api/ai/generate-mitigation", async (req, res) => {
     try {
       const { risk } = req.body;
       
@@ -472,7 +475,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.post("/api/ai/risk-insights", requireAuth, async (req, res) => {
+  app.post("/api/ai/risk-insights", async (req, res) => {
     try {
       const risks = await storage.getAllRisks();
       
@@ -521,7 +524,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/ai/analyze", requireAuth, async (req, res) => {
+  app.post("/api/ai/analyze", async (req, res) => {
     try {
       // First get the risks data
       const riskSummary = await storage.getRiskSummary();

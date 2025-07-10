@@ -52,11 +52,14 @@ An intelligent risk management platform that helps organizations track, analyze,
 
 ## Recent Changes
 **January 10, 2025**
-- Simplified authentication to Google OAuth only
-- Removed traditional login/register forms and backend routes
-- Updated auth page to show only Google sign-in option
-- Implemented dynamic redirect URL construction for Google OAuth to handle domain changes
-- Enhanced error handling for OAuth flow with specific error messages
+- **MAJOR CHANGE: Complete authentication system removal**
+  - Removed all authentication requirements from entire application stack
+  - Eliminated all `requireAuth` and `requireRole` middleware from backend API routes
+  - Direct access to all features without user login or permissions
+  - All API endpoints including AI features now accessible without authentication
+  - Updated frontend to remove authentication-dependent UI elements
+- Verified OpenAI integration exists with API key configured for real AI capabilities
+- Identified OpenAI API key validation issue requiring user update
 
 ## User Preferences
 - Simple, everyday language for communication

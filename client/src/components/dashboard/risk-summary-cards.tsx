@@ -26,52 +26,60 @@ export function RiskSummaryCards({
   mitigationProgress 
 }: RiskSummaryCardsProps) {
   return (
-    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
       {/* Total Risks Card */}
       <SummaryCard
-        iconClassName="bg-gradient-blue text-white"
-        icon={<ClipboardList size={20} />}
+        iconClassName="bg-gradient-to-br from-blue-500 to-blue-600"
+        icon={<ClipboardList size={22} />}
         title="Total Risks"
+        subtitle="Active risks tracked"
         value={totalRisks}
         link="/risks"
-        linkText="View all"
-        cardClass="border-blue-100/60"
+        linkText="View all risks"
+        cardClass="group hover:shadow-blue-500/10"
+        gradientOverlay="from-blue-50/80 to-indigo-50/40"
       />
 
       {/* Critical Risks Card */}
       <SummaryCard
-        iconClassName="bg-gradient-to-br from-red-500 to-rose-600 text-white"
-        icon={<AlertTriangle size={20} />}
+        iconClassName="bg-gradient-to-br from-red-500 to-rose-600"
+        icon={<AlertTriangle size={22} />}
         title="Critical Risks"
+        subtitle="Immediate attention required"
         value={criticalRisks}
         link="/risks?severity=Critical"
-        linkText="Needs attention"
+        linkText="Urgent review"
         linkClassName="text-red-600 hover:text-red-700"
-        cardClass="border-red-100/60"
+        cardClass="group hover:shadow-red-500/10"
+        gradientOverlay="from-red-50/80 to-rose-50/40"
       />
 
       {/* High Risks Card */}
       <SummaryCard
-        iconClassName="bg-gradient-to-br from-amber-500 to-orange-600 text-white"
-        icon={<ArrowUp size={20} />}
+        iconClassName="bg-gradient-to-br from-amber-500 to-orange-600"
+        icon={<ArrowUp size={22} />}
         title="High Risks"
+        subtitle="Close monitoring needed"
         value={highRisks}
         link="/risks?severity=High"
-        linkText="Monitor closely"
+        linkText="Monitor progress"
         linkClassName="text-amber-600 hover:text-amber-700"
-        cardClass="border-amber-100/60"
+        cardClass="group hover:shadow-amber-500/10"
+        gradientOverlay="from-amber-50/80 to-orange-50/40"
       />
 
       {/* Mitigation Progress Card */}
       <SummaryCard
-        iconClassName="bg-gradient-green text-white"
-        icon={<CheckCircle size={20} />}
+        iconClassName="bg-gradient-to-br from-emerald-500 to-teal-600"
+        icon={<CheckCircle size={22} />}
         title="Mitigation Progress"
+        subtitle="Overall completion rate"
         value={`${mitigationProgress}%`}
         link="/risks?status=In Progress"
-        linkText="View details"
-        linkClassName="text-green-600 hover:text-green-700"
-        cardClass="border-green-100/60"
+        linkText="View progress"
+        linkClassName="text-emerald-600 hover:text-emerald-700"
+        cardClass="group hover:shadow-emerald-500/10"
+        gradientOverlay="from-emerald-50/80 to-teal-50/40"
       />
     </div>
   );
@@ -81,50 +89,64 @@ interface SummaryCardProps {
   icon: React.ReactNode;
   iconClassName: string;
   title: string;
+  subtitle?: string;
   value: number | string;
   link: string;
   linkText: string;
   linkClassName?: string;
   cardClass?: string;
+  gradientOverlay?: string;
 }
 
 function SummaryCard({
   icon,
   iconClassName,
   title,
+  subtitle,
   value,
   link,
   linkText,
   linkClassName = "text-blue-600 hover:text-blue-700",
-  cardClass = ""
+  cardClass = "",
+  gradientOverlay = "from-gray-50/80 to-white/40"
 }: SummaryCardProps) {
   return (
-    <Card className={`glass-card backdrop-blur-md border ${cardClass || 'border-white/50'} shadow-lg overflow-hidden rounded-xl transition-all duration-300 hover:shadow-xl hover:translate-y-[-2px] relative`}>
-      <div className="absolute inset-0 bg-gradient-to-br from-white/80 to-white/40 z-0"></div>
-      <CardContent className="p-6 relative z-10">
-        <div className="flex items-center">
-          <div className={`flex-shrink-0 rounded-xl p-3 ${iconClassName} shadow-md`}>
-            {icon}
-          </div>
-          <div className="ml-5 w-0 flex-1">
-            <dt className="text-sm font-medium text-gray-500 truncate">{title}</dt>
-            <dd>
-              <div className="text-3xl font-bold text-gray-900 mt-1">{value}</div>
-            </dd>
+    <Card className={`relative overflow-hidden rounded-2xl border border-gray-200/50 shadow-lg hover:shadow-xl transition-all duration-500 ${cardClass} backdrop-blur-sm`}>
+      {/* Enhanced gradient background */}
+      <div className={`absolute inset-0 bg-gradient-to-br ${gradientOverlay} opacity-60`}></div>
+      <div className="absolute inset-0 bg-gradient-to-br from-white/60 via-white/30 to-transparent"></div>
+      
+      {/* Subtle animated border effect */}
+      <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+      
+      <CardContent className="p-7 relative z-10">
+        <div className="flex items-start justify-between">
+          <div className="flex-1">
+            <div className="flex items-center gap-4 mb-4">
+              <div className={`flex-shrink-0 rounded-2xl p-4 ${iconClassName} text-white shadow-lg transform group-hover:scale-110 transition-transform duration-300`}>
+                {icon}
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-lg font-bold text-gray-900 truncate">{title}</h3>
+                {subtitle && (
+                  <p className="text-sm text-gray-600 mt-1 truncate">{subtitle}</p>
+                )}
+              </div>
+            </div>
+            <div className="space-y-2">
+              <div className="text-4xl font-bold text-gray-900 tracking-tight">{value}</div>
+            </div>
           </div>
         </div>
       </CardContent>
-      <CardFooter className="bg-gray-50/70 backdrop-blur-sm px-6 py-3 border-t border-gray-100/50 relative z-10">
-        <div className="text-sm">
-          <Link to={link}>
-            <div
-              className={`font-medium ${linkClassName} inline-flex items-center transition-colors hover:underline`}
-            >
-              {linkText}
-              <ExternalLink className="ml-1 h-3 w-3" />
-            </div>
-          </Link>
-        </div>
+      
+      <CardFooter className="bg-white/40 backdrop-blur-sm px-7 py-4 border-t border-gray-100/60 relative z-10">
+        <Link to={link} className="w-full">
+          <div className={`font-semibold ${linkClassName} inline-flex items-center justify-between w-full group-hover:translate-x-1 transition-all duration-300`}>
+            <span>{linkText}</span>
+            <ExternalLink className="h-4 w-4 opacity-70 group-hover:opacity-100 transition-opacity" />
+          </div>
+        </Link>
       </CardFooter>
     </Card>
   );
