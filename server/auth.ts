@@ -36,28 +36,7 @@ export function setupAuth(app: Express) {
   app.use(passport.initialize());
   app.use(passport.session());
 
-  // Configure LocalStrategy for username/password authentication
-  passport.use(
-    new LocalStrategy(async (username, password, done) => {
-      try {
-        const user = await storage.getUserByUsername(username);
-        if (!user) {
-          return done(null, false, { message: "Invalid username or password" });
-        }
-
-        const isPasswordValid = await storage.verifyPassword(password, user.password || "");
-        if (!isPasswordValid) {
-          return done(null, false, { message: "Invalid username or password" });
-        }
-
-        // Don't send password to client
-        const { password: _, ...userWithoutPassword } = user;
-        return done(null, userWithoutPassword as Express.User);
-      } catch (error) {
-        return done(error);
-      }
-    })
-  );
+  // Local authentication removed - Google OAuth only
   
   // Configure Google Strategy for OAuth authentication
   if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
@@ -149,128 +128,7 @@ export function setupAuth(app: Express) {
     }
   });
 
-  // Register route - create a new user
-  app.post("/api/register", async (req, res, next) => {
-    try {
-      console.log("Registration attempt with data:", JSON.stringify(req.body, null, 2));
-      const { username, password, name, email } = req.body;
-      
-      if (!username || !password || !name || !email) {
-        console.log("Registration failed - missing fields:", { username: !!username, password: !!password, name: !!name, email: !!email });
-        return res.status(400).json({ message: "All fields are required" });
-      }
-
-      // Check if username already exists
-      const existingUser = await storage.getUserByUsername(username);
-      if (existingUser) {
-        console.log("Registration failed - username already exists:", username);
-        return res.status(409).json({ message: "Username already exists" });
-      }
-
-      // Check if email already exists
-      const existingEmail = await storage.getUserByEmail(email);
-      if (existingEmail) {
-        console.log("Registration failed - email already exists:", email);
-        return res.status(409).json({ message: "Email already exists" });
-      }
-
-      console.log("Hashing password and creating user");
-      // Hash password and create user
-      const hashedPassword = await storage.hashPassword(password);
-      console.log("Password hashed successfully");
-      
-      const user = await storage.createUser({
-        username,
-        password: hashedPassword,
-        name,
-        email,
-        role: "Viewer" // Default role for new users
-      });
-      console.log("User created successfully:", user.id);
-
-      // Send welcome email to the user
-      try {
-        const { sendConfirmationEmail } = await import("./services/email-service");
-        const emailResult = await sendConfirmationEmail(email, name);
-        
-        if (emailResult.success) {
-          console.log("Welcome email sent successfully");
-        } else {
-          console.warn("Failed to send welcome email");
-        }
-        
-        // Include email preview URL in development environment
-        const devEmailPreview = process.env.NODE_ENV !== 'production' && emailResult.previewUrl 
-          ? { devEmailPreview: emailResult.previewUrl } 
-          : {};
-          
-        // Log the user in after registration
-        req.login(user, (err) => {
-          if (err) {
-            console.error("Login after registration failed:", err);
-            return next(err);
-          }
-          
-          console.log("User logged in after registration:", user.id);
-          // Return user without password
-          const { password: _, ...userWithoutPassword } = user;
-          return res.status(201).json({
-            ...userWithoutPassword,
-            ...devEmailPreview
-          });
-        });
-      } catch (emailError) {
-        console.error("Error sending welcome email:", emailError);
-        
-        // Continue with login even if email sending fails
-        req.login(user, (err) => {
-          if (err) {
-            console.error("Login after registration failed:", err);
-            return next(err);
-          }
-          
-          console.log("User logged in after registration:", user.id);
-          // Return user without password
-          const { password: _, ...userWithoutPassword } = user;
-          return res.status(201).json(userWithoutPassword);
-        });
-      }
-    } catch (error) {
-      console.error("Registration error:", error);
-      return res.status(500).json({ 
-        message: "Internal server error", 
-        error: error instanceof Error ? error.message : "Unknown error" 
-      });
-    }
-  });
-
-  // Login route
-  app.post("/api/login", (req, res, next) => {
-    console.log("Login attempt with data:", JSON.stringify(req.body, null, 2));
-    
-    passport.authenticate("local", (err: any, user: Express.User | false, info: { message?: string }) => {
-      if (err) {
-        console.error("Login authentication error:", err);
-        return next(err);
-      }
-      
-      if (!user) {
-        console.log("Login failed - Invalid credentials:", info?.message);
-        return res.status(401).json({ message: info?.message || "Invalid credentials" });
-      }
-      
-      console.log("User authenticated successfully, proceeding to login");
-      req.login(user, (err) => {
-        if (err) {
-          console.error("Login session creation error:", err);
-          return next(err);
-        }
-        
-        console.log("Login successful for user:", user.id);
-        return res.status(200).json(user);
-      });
-    })(req, res, next);
-  });
+  // Traditional login/register routes removed - Google OAuth only
 
   // Logout route
   app.post("/api/logout", (req, res) => {
