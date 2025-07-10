@@ -5,9 +5,17 @@ import type { InsertRisk, Risk, RISK_CATEGORIES } from "@shared/schema";
 // If OPENAI_API_KEY is not set, the client will throw an error when attempting API calls
 // Using a factory function to create a fresh client each time to avoid persistent headers
 function createOpenAIClient() {
+  // Debug log to verify API key
+  const apiKey = process.env.OPENAI_API_KEY;
+  console.log(`OpenAI API Key loaded: ${apiKey ? `${apiKey.substring(0, 12)}...${apiKey.substring(apiKey.length - 4)}` : 'NOT SET'}`);
+  
+  if (!apiKey) {
+    throw new Error("OPENAI_API_KEY environment variable is not set");
+  }
+  
   // Create a configuration object without organization header
   const configuration = {
-    apiKey: process.env.OPENAI_API_KEY
+    apiKey: apiKey
   };
   
   // Create a client with explicit configuration to avoid headers inheritance
