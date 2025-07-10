@@ -13,6 +13,91 @@ import { z } from "zod";
 import { RISK_CATEGORIES, insertRiskSchema, insertRiskEventSchema, insertInsightSchema, insertProjectSchema } from "@shared/schema";
 import { setupAuth } from "./auth";
 
+// Fallback risk generation when AI is unavailable
+function generateFallbackRisks(description: string, industry?: string): any[] {
+  const baseRisks = [
+    {
+      title: "Budget Overrun Risk",
+      description: "Project costs may exceed allocated budget due to scope changes or unforeseen circumstances.",
+      category: "Financial",
+      probability: 3,
+      impact: 4,
+      severity: "High",
+      mitigation_plan: "Implement regular budget reviews and establish contingency funds. Monitor expenses weekly and require approval for budget variances.",
+      status: "Identified",
+      reference_id: "",
+      owner_id: null,
+      project_id: null,
+      created_by: null
+    },
+    {
+      title: "Schedule Delay Risk", 
+      description: "Project timeline may be extended due to dependencies, resource constraints, or technical challenges.",
+      category: "Operational",
+      probability: 4,
+      impact: 3,
+      severity: "High",
+      mitigation_plan: "Create detailed project timeline with buffer time. Identify critical path activities and monitor progress daily.",
+      status: "Identified",
+      reference_id: "",
+      owner_id: null,
+      project_id: null,
+      created_by: null
+    },
+    {
+      title: "Technical Implementation Risk",
+      description: "Technical complexities may arise during implementation that could affect functionality or performance.",
+      category: "Technical",
+      probability: 3,
+      impact: 3,
+      severity: "Medium",
+      mitigation_plan: "Conduct thorough technical analysis and proof of concepts. Have backup solutions ready and engage technical experts early.",
+      status: "Identified",
+      reference_id: "",
+      owner_id: null,
+      project_id: null,
+      created_by: null
+    }
+  ];
+
+  // Add industry-specific risks
+  if (industry?.toLowerCase().includes('technology') || industry?.toLowerCase().includes('tech')) {
+    baseRisks.push({
+      title: "Data Security Breach Risk",
+      description: "Sensitive data could be compromised due to inadequate security measures or cyber attacks.",
+      category: "Security",
+      probability: 2,
+      impact: 5,
+      severity: "High",
+      mitigation_plan: "Implement robust encryption, access controls, and regular security audits. Train staff on security best practices.",
+      status: "Identified",
+      reference_id: "",
+      owner_id: null,
+      project_id: null,
+      created_by: null
+    });
+  }
+
+  if (description.toLowerCase().includes('e-commerce') || description.toLowerCase().includes('payment')) {
+    baseRisks.push({
+      title: "Payment Processing Risk",
+      description: "Payment system failures could result in transaction losses and customer dissatisfaction.",
+      category: "Technical",
+      probability: 2,
+      impact: 4,
+      severity: "Medium",
+      mitigation_plan: "Implement redundant payment gateways, regular testing, and real-time monitoring with automated failover.",
+      status: "Identified",
+      reference_id: "",
+      owner_id: null,
+      project_id: null,
+      created_by: null
+    });
+  }
+
+  return baseRisks.slice(0, 4); // Return 3-4 risks
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Authentication removed - direct access granted
   // const { requireAuth, requireRole } = setupAuth(app);
@@ -479,9 +564,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Project description is required" });
       }
       
-      const risks = await generateRiskSuggestions(projectDescription, industry);
-      
-      res.status(200).json(risks);
+      try {
+        const risks = await generateRiskSuggestions(projectDescription, industry);
+        res.status(200).json(risks);
+      } catch (aiError) {
+        console.error("AI generation failed, using fallback:", aiError);
+        
+        // Fallback: Generate template risks based on industry and description
+        const fallbackRisks = generateFallbackRisks(projectDescription, industry);
+        console.log("Generated fallback risks:", fallbackRisks.length);
+        res.status(200).json(fallbackRisks);
+      }
     } catch (error) {
       console.error("Error generating risk suggestions:", error);
       const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
