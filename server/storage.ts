@@ -7,11 +7,13 @@ import {
   RISK_SEVERITY, RISK_STATUS, RISK_CATEGORIES
 } from "@shared/schema";
 import session from "express-session";
-import { DatabaseStorage } from "./storage-db";
 import createMemoryStore from "memorystore";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
-import { isDatabaseAvailable } from "./db";
 import { promisify } from "util";
+
+// Only import DatabaseStorage if needed to avoid errors
+import { isDatabaseAvailable } from "./db";
+const DatabaseStorage = isDatabaseAvailable ? require("./storage-db").DatabaseStorage : null;
 
 // Promisify the scrypt function
 const scryptAsync = promisify(scrypt);
@@ -688,18 +690,21 @@ export class MemStorage implements IStorage {
 }
 
 // Use Database Storage for production
-export const storage = isDatabaseAvailable 
-  ? new DatabaseStorage() 
+export const storage = (isDatabaseAvailable && DatabaseStorage) 
+  ? new DatabaseStorage()
   : new MemStorage();
 
 // Initialize the database with seed data if needed
 (async () => {
-  if (storage instanceof DatabaseStorage) {
+  if (isDatabaseAvailable && DatabaseStorage && storage instanceof DatabaseStorage) {
     try {
       await (storage as DatabaseStorage).initializeDatabase();
       console.log("Database initialized successfully");
     } catch (error) {
       console.error("Error initializing database:", error);
     }
+  }
+  else {
+    console.log("Using in-memory storage with seed data");
   }
 })();

@@ -11,8 +11,16 @@ let db: any = null;
 if (!process.env.DATABASE_URL) {
   console.warn("DATABASE_URL not set. Using in-memory storage instead of PostgreSQL.");
 } else {
-  pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  db = drizzle({ client: pool, schema });
+  try {
+    pool = new Pool({ connectionString: process.env.DATABASE_URL });
+    db = drizzle({ client: pool, schema });
+    console.log("Database connection established successfully");
+  } catch (error) {
+    console.error("Failed to connect to database:", error);
+    console.warn("Falling back to in-memory storage");
+    pool = null;
+    db = null;
+  }
 }
 
 export { pool, db };
