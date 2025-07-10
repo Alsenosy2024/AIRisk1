@@ -10,6 +10,7 @@ import session from "express-session";
 import { DatabaseStorage } from "./storage-db";
 import createMemoryStore from "memorystore";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
+import { isDatabaseAvailable } from "./db";
 import { promisify } from "util";
 
 // Promisify the scrypt function
@@ -687,7 +688,9 @@ export class MemStorage implements IStorage {
 }
 
 // Use Database Storage for production
-export const storage = new DatabaseStorage();
+export const storage = isDatabaseAvailable 
+  ? new DatabaseStorage() 
+  : new MemStorage();
 
 // Initialize the database with seed data if needed
 (async () => {

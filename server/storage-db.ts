@@ -6,7 +6,7 @@ import {
   insights, type Insight, type InsertInsight,
   RISK_SEVERITY, RISK_STATUS, RISK_CATEGORIES
 } from "@shared/schema";
-import { db, pool } from "./db";
+import { db, pool, isDatabaseAvailable } from "./db";
 import { eq, and, or, like, desc, asc, sql, count } from "drizzle-orm";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
@@ -57,10 +57,18 @@ export class DatabaseStorage implements IStorage {
   sessionStore: session.Store;
   
   constructor() {
-    this.sessionStore = new PostgresSessionStore({ 
-      pool, 
-      createTableIfMissing: true 
-    });
+    if (isDatabaseAvailable && pool) {
+      this.sessionStore = new PostgresSessionStore({ 
+        pool, 
+        createTableIfMissing: true 
+      });
+    } else {
+      // Create memory session store as fallback
+      const MemoryStore = connectPg(session);
+      this.sessionStore = new MemoryStore({
+        checkPeriod: 86400000, // prune expired entries every 24h
+      });
+    }
   }
   
   // Project operations required by IStorage interface
