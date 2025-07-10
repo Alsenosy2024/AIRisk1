@@ -694,6 +694,8 @@ export const storage = (isDatabaseAvailable && DatabaseStorage)
   ? new DatabaseStorage()
   : new MemStorage();
 
+console.log("Storage initialized:", isDatabaseAvailable ? "Using database storage" : "Using in-memory storage");
+
 // Initialize the database with seed data if needed
 (async () => {
   if (isDatabaseAvailable && DatabaseStorage && storage instanceof DatabaseStorage) {

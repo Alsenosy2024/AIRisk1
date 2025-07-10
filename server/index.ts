@@ -1,3 +1,7 @@
+console.log("=== SERVER PROCESS STARTED ===");
+console.log("Node.js version:", process.version);
+console.log("Current working directory:", process.cwd());
+
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
@@ -39,6 +43,8 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  console.log("=== SERVER INITIALIZATION STARTED ===");
+  
   // Initialize email service
   await initializeEmailService();
   
@@ -70,6 +76,7 @@ app.use((req, res, next) => {
     host: "0.0.0.0",
     reusePort: true,
   }, () => {
+    console.log("=== SERVER LISTENING ===");
     log(`serving on port ${port}`);
   });
 })();
