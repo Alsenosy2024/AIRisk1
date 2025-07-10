@@ -15,7 +15,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { RiskForm } from "@/components/risks/risk-form";
-import { useAuth } from "@/hooks/use-auth";
+// Authentication removed - full access granted
 
 // Table column headers
 const columns = [
@@ -36,7 +36,8 @@ interface TopRisksTableProps {
 export function TopRisksTable({ risks, onRefresh }: TopRisksTableProps) {
   const [selectedRisk, setSelectedRisk] = useState<any | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const { hasEditPermission } = useAuth();
+  // Full access granted - authentication removed
+  const hasEditPermission = true;
 
   const handleEditClick = (risk: any) => {
     setSelectedRisk(risk);

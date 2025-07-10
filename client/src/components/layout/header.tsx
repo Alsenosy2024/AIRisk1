@@ -1,25 +1,11 @@
-import { useState } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { 
   Menu, 
   Bell, 
-  User, 
-  LogOut, 
-  Settings, 
   Search, 
   HelpCircle 
 } from "lucide-react";
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuLabel, 
-  DropdownMenuSeparator, 
-  DropdownMenuTrigger 
-} from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useAuth } from "@/hooks/use-auth";
 import { Input } from "@/components/ui/input";
 
 interface HeaderProps {
@@ -28,7 +14,6 @@ interface HeaderProps {
 
 export function Header({ toggleSidebar }: HeaderProps) {
   const [location, navigate] = useLocation();
-  const { user, logoutMutation } = useAuth();
   
   // Map routes to page titles
   const pageTitles: Record<string, string> = {
@@ -59,47 +44,23 @@ export function Header({ toggleSidebar }: HeaderProps) {
             </h1>
 
             {/* Search Bar for Larger Screens */}
-            {user && (
-              <div className="hidden lg:flex items-center max-w-md w-full">
-                <div className="relative w-full">
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <Search className="h-4 w-4 text-gray-400" />
-                  </div>
-                  <Input 
-                    type="search" 
-                    placeholder="Search risks, projects..." 
-                    className="pl-10 py-2 bg-gray-50 border-gray-100 text-sm rounded-full w-full focus-visible:ring-blue-500"
-                  />
+            <div className="hidden lg:flex items-center max-w-md w-full">
+              <div className="relative w-full">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <Search className="h-4 w-4 text-gray-400" />
                 </div>
+                <Input 
+                  type="search" 
+                  placeholder="Search risks, projects..." 
+                  className="pl-10 py-2 bg-gray-50 border-gray-100 text-sm rounded-full w-full focus-visible:ring-blue-500"
+                />
               </div>
-            )}
+            </div>
           </div>
           
           <div className="flex items-center space-x-1 sm:space-x-3">
-            {user ? (
-              <>
-                <HelpButton />
-                <NotificationBell />
-                <UserMenu user={user} onLogout={() => logoutMutation.mutate()} />
-              </>
-            ) : (
-              <>
-                <Button
-                  variant="ghost"
-                  className="text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-                  onClick={() => navigate('/auth')}
-                >
-                  Log In
-                </Button>
-                <Button
-                  variant="default"
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
-                  onClick={() => navigate('/auth?tab=register')}
-                >
-                  Sign Up
-                </Button>
-              </>
-            )}
+            <HelpButton />
+            <NotificationBell />
           </div>
         </div>
       </div>
@@ -127,50 +88,4 @@ function NotificationBell() {
   );
 }
 
-interface UserMenuProps {
-  user: any;
-  onLogout: () => void;
-}
 
-function UserMenu({ user, onLogout }: UserMenuProps) {
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative rounded-full p-1 flex items-center gap-2 hover:bg-gray-100">
-          <Avatar className="h-8 w-8 border-2 border-blue-100">
-            <AvatarImage
-              src=""
-              alt="User"
-            />
-            <AvatarFallback className="bg-blue-600 text-white font-medium">{user?.name?.charAt(0) || "U"}</AvatarFallback>
-          </Avatar>
-          <span className="hidden md:inline text-sm font-medium text-gray-700 max-w-[100px] truncate">
-            {user?.name || "User"}
-          </span>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56 mt-1">
-        <DropdownMenuLabel className="font-normal">
-          <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{user?.name || "User"}</p>
-            <p className="text-xs leading-none text-gray-500">{user?.email || "user@example.com"}</p>
-          </div>
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem className="cursor-pointer">
-          <User className="mr-2 h-4 w-4" />
-          <span>Profile</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem className="cursor-pointer">
-          <Settings className="mr-2 h-4 w-4" />
-          <span>Settings</span>
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem className="cursor-pointer text-red-600 focus:text-red-600" onClick={onLogout}>
-          <LogOut className="mr-2 h-4 w-4" />
-          <span>Logout</span>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-}

@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { RISK_CATEGORIES, RISK_STATUS } from "@shared/schema";
-import { useAuth } from "@/hooks/use-auth";
+// Authentication removed - using default user
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
@@ -51,7 +51,8 @@ interface RiskFormProps {
 }
 
 export function RiskForm({ risk, initialProjectId, onSuccess, onCancel }: RiskFormProps) {
-  const { user } = useAuth();
+  // Default user - authentication removed
+  const user = { id: 1, name: "Default User" };
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isGeneratingMitigation, setIsGeneratingMitigation] = useState(false);

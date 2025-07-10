@@ -35,7 +35,7 @@ import {
 import { Trash2, PenSquare, Calendar, ChevronRight, FileText, Activity } from "lucide-react";
 import { Project, InsertProject } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/use-auth";
+// Authentication removed - full access granted
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -68,7 +68,8 @@ function ProjectForm({
   onSuccess?: () => void,
   onCancel?: () => void 
 }) {
-  const { user } = useAuth();
+  // Default user - authentication removed
+  const user = { id: 1, name: "Default User" };
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -225,10 +226,9 @@ export default function ProjectsPage() {
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { user } = useAuth();
-
-  // Check if user has permission to edit projects
-  const canManageProjects = user?.role === "Admin" || user?.role === "Project Manager";
+  
+  // Full access granted - authentication removed
+  const canManageProjects = true;
 
   // Fetch projects
   const { data: projects = [], isLoading } = useQuery<Project[]>({

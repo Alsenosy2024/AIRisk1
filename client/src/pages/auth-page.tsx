@@ -1,19 +1,9 @@
-import { useEffect } from "react";
 import { useLocation } from "wouter";
-import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function AuthPage() {
   const [location, navigate] = useLocation();
-  const { user } = useAuth();
-
-  // Redirect if user is already logged in
-  useEffect(() => {
-    if (user) {
-      navigate("/");
-    }
-  }, [user, navigate]);
 
   const handleGoogleSignIn = () => {
     window.location.href = "/api/auth/google";

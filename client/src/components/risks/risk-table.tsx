@@ -16,7 +16,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { getColorBySeverity, getColorByCategory, getColorByStatus } from "@/lib/utils";
 import { RiskForm } from "./risk-form";
-import { useAuth } from "@/hooks/use-auth";
+// Authentication removed - full access granted
 import {
   AlertDialog,
   AlertDialogAction,
@@ -37,7 +37,9 @@ export function RiskTable({ risks, onRefresh }: RiskTableProps) {
   const [selectedRisk, setSelectedRisk] = useState<any | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const { hasEditPermission, hasDeletePermission } = useAuth();
+  // Full access granted - authentication removed
+  const hasEditPermission = true;
+  const hasDeletePermission = true;
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
