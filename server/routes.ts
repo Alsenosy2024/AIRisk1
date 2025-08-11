@@ -10,8 +10,17 @@ import {
   sendConfirmationEmail 
 } from "./services/email-service";
 import { z } from "zod";
-import { RISK_CATEGORIES, insertRiskSchema, insertRiskEventSchema, insertInsightSchema, insertProjectSchema } from "@shared/schema";
+import {
+  RISK_CATEGORIES,
+  insertRiskSchema,
+  insertRiskEventSchema,
+  insertInsightSchema,
+  insertProjectSchema,
+  Risk,
+  RiskEvent
+} from "@shared/schema";
 import { setupAuth } from "./auth";
+import OpenAI from "openai";
 
 // Fallback risk generation when AI is unavailable
 function generateFallbackRisks(description: string, industry?: string): any[] {
@@ -272,7 +281,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Enhance risks with owner and project information
       const enhancedRisks = await Promise.all(
-        risks.map(async risk => {
+        risks.map(async (risk: Risk) => {
           const owner = risk.owner_id ? await storage.getUser(risk.owner_id) : null;
           const project = risk.project_id ? await storage.getProject(risk.project_id) : null;
           
@@ -311,7 +320,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Enhance events with user information
       const enhancedEvents = await Promise.all(
-        events.map(async event => {
+        events.map(async (event: RiskEvent) => {
           const user = event.created_by ? await storage.getUser(event.created_by) : null;
           
           return {
@@ -510,29 +519,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/test-openai", async (req, res) => {
     try {
       const apiKey = process.env.OPENAI_API_KEY;
-      console.log(`Testing OpenAI with key: ${apiKey?.substring(0, 12)}...${apiKey?.substring(apiKey.length - 4)}`);
-      
+      const keyInfo = apiKey
+        ? `${apiKey.substring(0, 12)}...${apiKey.substring(apiKey.length - 4)}`
+        : "No API key";
+      console.log(`Testing OpenAI with key: ${keyInfo}`);
+
       const openai = new OpenAI({
-        apiKey: apiKey
+        apiKey
       });
-      
+
       const response = await openai.chat.completions.create({
         model: "gpt-4o-mini",
         messages: [{ role: "user", content: "Say hello" }],
         max_tokens: 10
       });
-      
-      res.json({ 
-        success: true, 
+
+      res.json({
+        success: true,
         response: response.choices[0].message.content,
-        keyInfo: `Key: ${apiKey?.substring(0, 12)}...${apiKey?.substring(apiKey.length - 4)}`
+        keyInfo: `Key: ${keyInfo}`
       });
     } catch (error: any) {
+      const apiKey = process.env.OPENAI_API_KEY;
+      const keyInfo = apiKey
+        ? `${apiKey.substring(0, 12)}...${apiKey.substring(apiKey.length - 4)}`
+        : "No API key";
       console.error('OpenAI test error:', error);
-      res.json({ 
-        success: false, 
+      res.json({
+        success: false,
         error: error.message,
-        keyInfo: `Key: ${process.env.OPENAI_API_KEY?.substring(0, 12)}...${process.env.OPENAI_API_KEY?.substring(process.env.OPENAI_API_KEY.length - 4)}`
+        keyInfo: `Key: ${keyInfo}`
       });
     }
   });
