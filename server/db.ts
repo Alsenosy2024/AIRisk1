@@ -10,6 +10,8 @@ let db: any = null;
 
 if (!process.env.DATABASE_URL) {
   console.warn("DATABASE_URL not set. Using in-memory storage instead of PostgreSQL.");
+  pool = null;
+  db = null;
 } else {
   try {
     pool = new Pool({ connectionString: process.env.DATABASE_URL });

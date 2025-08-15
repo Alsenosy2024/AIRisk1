@@ -11,9 +11,10 @@ import createMemoryStore from "memorystore";
 import { scrypt, randomBytes, timingSafeEqual } from "crypto";
 import { promisify } from "util";
 
-// Only import DatabaseStorage if needed to avoid errors
+// Import database storage modules
 import { isDatabaseAvailable } from "./db";
-const DatabaseStorage = isDatabaseAvailable ? require("./storage-db").DatabaseStorage : null;
+import { DatabaseStorage } from "./storage-db.js";
+// DatabaseStorage will be conditionally used based on isDatabaseAvailable
 
 // Promisify the scrypt function
 const scryptAsync = promisify(scrypt);
