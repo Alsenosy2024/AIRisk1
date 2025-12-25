@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -7,6 +7,7 @@ import { Header } from "@/components/layout/header";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 import { useTheme } from "@/components/theme-provider";
+import { apiRequest } from "@/lib/queryClient";
 
 import {
   Card,
@@ -41,6 +42,10 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
+import { PaymentBrandStrip } from "@/components/payments/payment-brand-strip";
 
 // Schema for profile settings form
 const profileFormSchema = z.object({
@@ -67,11 +72,24 @@ type ProfileFormValues = z.infer<typeof profileFormSchema>;
 type NotificationFormValues = z.infer<typeof notificationFormSchema>;
 type AppearanceFormValues = z.infer<typeof appearanceFormSchema>;
 
+type PaymentConfig = {
+  baseUrl: string;
+  publicKey: string;
+  integrationIdCapture: string;
+  integrationIdUsd: string;
+  currency: string;
+  supportedCurrencies: string[];
+};
+
 export default function Settings() {
   const [sidebarVisible, setSidebarVisible] = useState(true);
   const { user } = useAuth();
   const { toast } = useToast();
   const { theme, setTheme } = useTheme();
+  const [paymentConfig, setPaymentConfig] = useState<PaymentConfig | null>(null);
+  const [preferredCurrency, setPreferredCurrency] = useState<string | undefined>(undefined);
+  const [paymentLoading, setPaymentLoading] = useState(false);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
 
   const toggleSidebar = () => {
     setSidebarVisible(!sidebarVisible);
@@ -132,6 +150,51 @@ export default function Settings() {
     });
   };
 
+  useEffect(() => {
+    let isActive = true;
+
+    const fetchPaymentConfig = async () => {
+      setPaymentLoading(true);
+      setPaymentError(null);
+
+      try {
+        const query = preferredCurrency ? `?currency=${preferredCurrency}` : "";
+        const response = await apiRequest("GET", `/api/payment/config${query}`);
+        const data: PaymentConfig = await response.json();
+
+        if (!isActive) return;
+        setPaymentConfig(data);
+
+        if (!preferredCurrency && data.currency) {
+          setPreferredCurrency(data.currency);
+        }
+      } catch (error) {
+        if (!isActive) return;
+        const message =
+          error instanceof Error
+            ? error.message
+            : "Unable to load payment settings. Please verify your Paymob credentials.";
+
+        setPaymentError(message);
+        toast({
+          title: "Payment settings unavailable",
+          description: message,
+          variant: "destructive",
+        });
+      } finally {
+        if (isActive) {
+          setPaymentLoading(false);
+        }
+      }
+    };
+
+    fetchPaymentConfig();
+
+    return () => {
+      isActive = false;
+    };
+  }, [preferredCurrency, toast]);
+
   return (
     <div className="min-h-screen flex">
       {/* Sidebar */}
@@ -151,10 +214,11 @@ export default function Settings() {
 
           {/* Settings Tabs */}
           <Tabs defaultValue="profile" className="max-w-4xl">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="profile">Profile</TabsTrigger>
               <TabsTrigger value="notifications">Notifications</TabsTrigger>
               <TabsTrigger value="appearance">Appearance</TabsTrigger>
+              <TabsTrigger value="billing">Billing</TabsTrigger>
             </TabsList>
 
             {/* Profile Settings */}
@@ -386,6 +450,117 @@ export default function Settings() {
                     </form>
                   </Form>
                 </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Billing & Payment Settings */}
+            <TabsContent value="billing">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Billing & Payments</CardTitle>
+                  <CardDescription>
+                    Align your checkout UI with Paymob and surface USD pricing for subscriptions.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-gray-800">Accepted cards</p>
+                      <p className="text-sm text-gray-600">
+                        Updated Visa and Mastercard styling keeps the payment strip crisp and legible.
+                      </p>
+                    </div>
+                    <PaymentBrandStrip />
+                  </div>
+
+                  <Separator />
+
+                  <div className="grid gap-6 md:grid-cols-2">
+                    <div className="space-y-3">
+                      <div>
+                        <p className="text-sm font-medium text-gray-800">Subscription currency</p>
+                        <p className="text-sm text-gray-600">
+                          Users will see prices in {paymentConfig?.currency ?? "USD"} based on your Paymob integration.
+                        </p>
+                      </div>
+                      <Select
+                        value={preferredCurrency ?? paymentConfig?.currency ?? "USD"}
+                        onValueChange={setPreferredCurrency}
+                        disabled={paymentLoading || !paymentConfig}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select currency" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {(paymentConfig?.supportedCurrencies || ["USD"]).map((currency) => (
+                            <SelectItem key={currency} value={currency}>
+                              {currency}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-gray-500">
+                        Currency preference is shared with the API without exposing your Paymob secret key.
+                      </p>
+                    </div>
+
+                    <div className="space-y-3 rounded-lg border bg-white p-4 shadow-sm">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-medium text-gray-800">Gateway configuration</p>
+                        <Badge variant="outline">USD-first</Badge>
+                      </div>
+
+                      {paymentLoading ? (
+                        <div className="space-y-2">
+                          <Skeleton className="h-4 w-32" />
+                          <Skeleton className="h-4 w-40" />
+                          <Skeleton className="h-4 w-28" />
+                        </div>
+                      ) : paymentConfig ? (
+                        <div className="space-y-3 text-sm text-gray-700">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-gray-600">Gateway URL</span>
+                            <code className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-800">
+                              {paymentConfig.baseUrl}
+                            </code>
+                          </div>
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-gray-600">Public key</span>
+                            <code className="max-w-[220px] truncate rounded bg-gray-100 px-2 py-1 text-xs text-gray-800">
+                              {paymentConfig.publicKey}
+                            </code>
+                          </div>
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-gray-600">Capture integration</span>
+                            <code className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-800">
+                              {paymentConfig.integrationIdCapture}
+                            </code>
+                          </div>
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-gray-600">USD integration</span>
+                            <code className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-800">
+                              {paymentConfig.integrationIdUsd}
+                            </code>
+                          </div>
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-gray-600">Displayed currency</span>
+                            <Badge>{paymentConfig.currency}</Badge>
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="text-sm text-red-600">
+                          {paymentError ?? "Payment configuration is not available yet."}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+                <CardFooter className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                  <p className="text-sm text-gray-600">
+                    Paymob environment variables are read from server-side secrets and never exposed to the browser.
+                  </p>
+                  <Badge variant="secondary">Secure checkout ready</Badge>
+                </CardFooter>
               </Card>
             </TabsContent>
           </Tabs>

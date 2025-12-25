@@ -21,6 +21,7 @@ import {
 } from "@shared/schema";
 import { setupAuth } from "./auth";
 import OpenAI from "openai";
+import { getPaymobPublicConfig } from "./services/paymob-config";
 
 // Fallback risk generation when AI is unavailable
 function generateFallbackRisks(description: string, industry?: string): any[] {
@@ -110,7 +111,24 @@ function generateFallbackRisks(description: string, industry?: string): any[] {
 export async function registerRoutes(app: Express): Promise<Server> {
   // Authentication removed - direct access granted
   // const { requireAuth, requireRole } = setupAuth(app);
-  
+
+  // Payment configuration route
+  app.get("/api/payment/config", async (req, res) => {
+    try {
+      const preferredCurrency = typeof req.query.currency === "string"
+        ? req.query.currency
+        : undefined;
+
+      const config = getPaymobPublicConfig(preferredCurrency);
+      res.status(200).json(config);
+    } catch (error) {
+      console.error("Failed to load Paymob configuration:", error);
+      res.status(500).json({
+        message: "Payment configuration is unavailable. Please verify server secrets.",
+      });
+    }
+  });
+
   // User routes
   app.get("/api/users", async (req, res) => {
     try {
